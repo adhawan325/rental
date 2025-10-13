@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1" author="rental">
+        <createTable tableName="RENTCAST_PROPERTY">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_RENTCAST_PROPERTY"/>
+            </column>
+            <column name="RENTCAST_ID" type="VARCHAR(500)"/>
+            <column name="FORMATTED_ADDRESS" type="VARCHAR(500)"/>
+            <column name="NORMALIZED_ADDRESS" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ADDRESS_LINE1" type="VARCHAR(255)"/>
+            <column name="ADDRESS_LINE2" type="VARCHAR(255)"/>
+            <column name="CITY" type="VARCHAR(100)"/>
+            <column name="STATE" type="VARCHAR(2)"/>
+            <column name="STATE_FIPS" type="VARCHAR(2)"/>
+            <column name="ZIP_CODE" type="VARCHAR(10)"/>
+            <column name="COUNTY" type="VARCHAR(100)"/>
+            <column name="COUNTY_FIPS" type="VARCHAR(3)"/>
+            <column name="LATITUDE" type="DECIMAL(10, 7)"/>
+            <column name="LONGITUDE" type="DECIMAL(10, 7)"/>
+            <column name="PROPERTY_TYPE" type="VARCHAR(50)"/>
+            <column name="BEDROOMS" type="INT"/>
+            <column name="BATHROOMS" type="INT"/>
+            <column name="SQUARE_FOOTAGE" type="INT"/>
+            <column name="LOT_SIZE" type="INT"/>
+            <column name="YEAR_BUILT" type="INT"/>
+            <column name="ASSESSOR_ID" type="VARCHAR(100)"/>
+            <column name="LEGAL_DESCRIPTION" type="VARCHAR(500)"/>
+            <column name="SUBDIVISION" type="VARCHAR(255)"/>
+            <column name="ZONING" type="VARCHAR(50)"/>
+            <column name="LAST_SALE_DATE" type="DATE"/>
+            <column name="LAST_SALE_PRICE" type="DECIMAL(19, 2)"/>
+            <column name="HOA_FEE" type="DECIMAL(19, 2)"/>
+            <column name="OWNER_OCCUPIED" type="BOOLEAN"/>
+            <column name="OWNER_NAMES" type="VARCHAR(500)"/>
+            <column name="OWNER_TYPE" type="VARCHAR(50)"/>
+            <column name="OWNER_MAILING_ADDRESS" type="VARCHAR(500)"/>
+            <column name="FEATURES_JSON" type="CLOB"/>
+            <column name="TAX_ASSESSMENTS_JSON" type="CLOB"/>
+            <column name="PROPERTY_TAXES_JSON" type="CLOB"/>
+            <column name="HISTORY_JSON" type="CLOB"/>
+            <column name="RAW_API_RESPONSE" type="CLOB"/>
+            <column name="CREATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LAST_UPDATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CACHE_EXPIRY_DATE" type="DATETIME"/>
+            <column name="VERSION" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="2" author="rental">
+        <createTable tableName="RENTCAST_RENT_ESTIMATE">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_RENTCAST_RENT_ESTIMATE"/>
+            </column>
+            <column name="PROPERTY_ID" type="UUID"/>
+            <column name="NORMALIZED_ADDRESS" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FORMATTED_ADDRESS" type="VARCHAR(500)"/>
+            <column name="RENT" type="DECIMAL(19, 2)"/>
+            <column name="RENT_LOW" type="DECIMAL(19, 2)"/>
+            <column name="RENT_HIGH" type="DECIMAL(19, 2)"/>
+            <column name="CONFIDENCE_SCORE" type="DECIMAL(5, 2)"/>
+            <column name="COMPARABLES_JSON" type="CLOB"/>
+            <column name="RAW_API_RESPONSE" type="CLOB"/>
+            <column name="CREATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LAST_UPDATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CACHE_EXPIRY_DATE" type="DATETIME"/>
+            <column name="VERSION" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="3" author="rental">
+        <createTable tableName="RENTCAST_VALUE_ESTIMATE">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_RENTCAST_VALUE_ESTIMATE"/>
+            </column>
+            <column name="PROPERTY_ID" type="UUID"/>
+            <column name="NORMALIZED_ADDRESS" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FORMATTED_ADDRESS" type="VARCHAR(500)"/>
+            <column name="PRICE" type="DECIMAL(19, 2)"/>
+            <column name="PRICE_LOW" type="DECIMAL(19, 2)"/>
+            <column name="PRICE_HIGH" type="DECIMAL(19, 2)"/>
+            <column name="CONFIDENCE_SCORE" type="DECIMAL(5, 2)"/>
+            <column name="COMPARABLES_JSON" type="CLOB"/>
+            <column name="RAW_API_RESPONSE" type="CLOB"/>
+            <column name="CREATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LAST_UPDATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CACHE_EXPIRY_DATE" type="DATETIME"/>
+            <column name="VERSION" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="4" author="rental">
+        <createIndex indexName="IDX_RENTCAST_PROPERTY_NORMALIZED_ADDRESS" tableName="RENTCAST_PROPERTY">
+            <column name="NORMALIZED_ADDRESS"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="5" author="rental">
+        <createIndex indexName="IDX_RENTCAST_PROPERTY_RENTCAST_ID" tableName="RENTCAST_PROPERTY">
+            <column name="RENTCAST_ID"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="6" author="rental">
+        <createIndex indexName="IDX_RENTCAST_RENT_ESTIMATE_ADDRESS" tableName="RENTCAST_RENT_ESTIMATE">
+            <column name="NORMALIZED_ADDRESS"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="7" author="rental">
+        <createIndex indexName="IDX_RENTCAST_RENT_ESTIMATE_PROPERTY" tableName="RENTCAST_RENT_ESTIMATE">
+            <column name="PROPERTY_ID"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="PROPERTY_ID" baseTableName="RENTCAST_RENT_ESTIMATE"
+                                 constraintName="FK_RENTCAST_RENT_ESTIMATE_ON_PROPERTY" referencedColumnNames="ID"
+                                 referencedTableName="RENTCAST_PROPERTY"/>
+    </changeSet>
+    <changeSet id="8" author="rental">
+        <createIndex indexName="IDX_RENTCAST_VALUE_ESTIMATE_ADDRESS" tableName="RENTCAST_VALUE_ESTIMATE">
+            <column name="NORMALIZED_ADDRESS"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="9" author="rental">
+        <createIndex indexName="IDX_RENTCAST_VALUE_ESTIMATE_PROPERTY" tableName="RENTCAST_VALUE_ESTIMATE">
+            <column name="PROPERTY_ID"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="PROPERTY_ID" baseTableName="RENTCAST_VALUE_ESTIMATE"
+                                 constraintName="FK_RENTCAST_VALUE_ESTIMATE_ON_PROPERTY" referencedColumnNames="ID"
+                                 referencedTableName="RENTCAST_PROPERTY"/>
+    </changeSet>
+</databaseChangeLog>
