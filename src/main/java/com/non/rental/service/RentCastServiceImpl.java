@@ -56,7 +56,7 @@ public class RentCastServiceImpl implements RentCastService {
 
     @Override
     @Transactional
-    @Cacheable(value = RENTCAST_PROPERTY_CACHE, key = "#address", unless = "!#result")
+    @Cacheable(value = RENTCAST_PROPERTY_CACHE, key = "#address", unless = "#result == null")
     public RentCastProperty getPropertyByAddress(String address) {
         log.info("Getting property data for address: {}", address);
 
@@ -96,7 +96,7 @@ public class RentCastServiceImpl implements RentCastService {
 
     @Override
     @Transactional
-    @Cacheable(value = RENTCAST_VALUE_ESTIMATE_CACHE, key = "#address", unless = "!#result")
+    @Cacheable(value = RENTCAST_VALUE_ESTIMATE_CACHE, key = "#address", unless = "#result == null")
     public RentCastValueEstimate getValueEstimate(String address) {
         log.info("Getting value estimate for address: {}", address);
 
@@ -136,7 +136,7 @@ public class RentCastServiceImpl implements RentCastService {
 
     @Override
     @Transactional
-    @Cacheable(value = RENTCAST_RENT_ESTIMATE_CACHE, key = "#address", unless = "!#result")
+    @Cacheable(value = RENTCAST_RENT_ESTIMATE_CACHE, key = "#address", unless = "#result == null")
     public RentCastRentEstimate getRentEstimate(String address) {
         log.info("Getting rent estimate for address: {}", address);
 

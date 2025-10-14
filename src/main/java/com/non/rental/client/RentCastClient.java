@@ -43,7 +43,7 @@ public class RentCastClient {
      *
      * @param address the property address
      * @return property data DTO
-     * @throws RentCastApiException if API call fails
+     * @throws RentCastApiException if API call fails or no properties found
      */
     public RentCastPropertyDto getPropertyByAddress(String address) {
         log.debug("Fetching property data for address: {}", address);
@@ -55,7 +55,17 @@ public class RentCastClient {
         String response = executeGetRequest(endpoint, params);
 
         try {
-            return objectMapper.readValue(response, RentCastPropertyDto.class);
+            // RentCast API returns an array of properties
+            RentCastPropertyDto[] properties = objectMapper.readValue(response, RentCastPropertyDto[].class);
+            
+            if (properties == null || properties.length == 0) {
+                log.warn("No properties found for address: {}", address);
+                throw new RentCastApiException("No properties found for address: " + address);
+            }
+            
+            log.debug("Found {} property(ies) for address: {}", properties.length, address);
+            return properties[0]; // Return the first matching property
+            
         } catch (Exception e) {
             log.error("Failed to parse property response", e);
             throw new RentCastApiException("Failed to parse property response", e);
@@ -98,8 +108,9 @@ public class RentCastClient {
 
         Map<String, String> params = new HashMap<>();
         params.put("address", address);
+        params.put("compCount", "5"); // Number of comparable properties to use
 
-        String endpoint = "/avm/rent";
+        String endpoint = "/avm/rent/long-term";
         String response = executeGetRequest(endpoint, params);
 
         try {
