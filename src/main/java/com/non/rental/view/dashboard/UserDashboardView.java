@@ -54,7 +54,7 @@ public class UserDashboardView extends StandardView {
     
     // Welcome Section
     @ViewComponent
-    private Span welcomeNameSpan;
+    private H1 welcomeNameSpan;
     
     @ViewComponent
     private Span currentDateSpan;
