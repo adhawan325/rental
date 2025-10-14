@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://propertySearchView.title"
+      focusComponent="addressField">
+    <layout padding="true" spacing="true">
+        <vbox padding="true" spacing="true" width="100%" maxWidth="1200px" alignSelf="CENTER">
+            
+            <!-- Header -->
+            <h1 text="msg://header.title"/>
+            
+            <!-- Search Section -->
+            <hbox spacing="true" width="100%" alignItems="END">
+                <textField id="addressField"
+                          label="msg://field.address.label"
+                          placeholder="msg://field.address.placeholder"
+                          width="100%"
+                          maxWidth="600px"
+                          clearButtonVisible="true"/>
+                <button id="searchButton"
+                       text="msg://button.search"
+                       themeNames="primary"
+                       icon="SEARCH"/>
+                <button id="clearButton"
+                       text="msg://button.clear"
+                       icon="CLOSE"/>
+            </hbox>
+            
+            <!-- Loading Indicator -->
+            <progressBar id="loadingIndicator"
+                        indeterminate="true"
+                        visible="false"
+                        width="100%"/>
+            
+            <!-- Error Message -->
+            <div id="errorMessageDiv"
+                 visible="false"
+                 classNames="error-message"
+                 style="padding: 1em; background-color: #fee; border: 1px solid #fcc; border-radius: 4px; color: #c00;"/>
+            
+            <!-- Results Section -->
+            <vbox id="resultsSection"
+                  visible="false"
+                  spacing="true"
+                  width="100%">
+                
+                <!-- Property Details Card -->
+                <vbox id="propertyDetailsCard"
+                      classNames="card"
+                      padding="true"
+                      spacing="true"
+                      style="background-color: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                </vbox>
+                
+                <!-- Valuation Card -->
+                <vbox id="valuationCard"
+                      classNames="card"
+                      padding="true"
+                      spacing="true"
+                      style="background-color: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                </vbox>
+                
+                <!-- Rental Information Card -->
+                <vbox id="rentalInfoCard"
+                      classNames="card"
+                      padding="true"
+                      spacing="true"
+                      style="background-color: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                </vbox>
+                
+                <!-- Tax & Ownership Card -->
+                <vbox id="taxOwnershipCard"
+                      classNames="card"
+                      padding="true"
+                      spacing="true"
+                      style="background-color: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                </vbox>
+                
+                <!-- Action Buttons -->
+                <hbox id="actionButtonsLayout"
+                      spacing="true"
+                      padding="true">
+                    <button id="analyzeButton"
+                           text="msg://button.analyzeProperty"
+                           themeNames="primary success"
+                           icon="CHART"/>
+                    <button id="searchAgainButton"
+                           text="msg://button.searchAgain"
+                           icon="REFRESH"/>
+                </hbox>
+            </vbox>
+            
+        </vbox>
+    </layout>
+</view>

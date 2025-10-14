@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://UserDashboardView.title"
+      focusComponent="analyzeNewPropertyButton">
+    
+    <layout padding="true" spacing="true">
+        <vbox padding="true" spacing="true" width="100%" maxWidth="1400px" alignSelf="CENTER">
+            
+            <!-- Welcome Section -->
+            <vbox classNames="welcome-section" spacing="false" padding="true">
+                <h1 id="welcomeNameSpan" text="Welcome back!"/>
+                <span id="currentDateSpan" classNames="current-date" text=""/>
+            </vbox>
+            
+            <!-- Summary Statistics Cards -->
+            <hbox width="100%" spacing="true" classNames="stats-cards-container">
+                
+                <!-- Total Properties Card -->
+                <div classNames="stat-card card" width="100%">
+                    <vbox padding="true" spacing="true">
+                        <hbox alignItems="CENTER" justifyContent="BETWEEN">
+                            <span classNames="stat-label" text="msg://stat.totalProperties"/>
+                            <icon icon="BUILDING" classNames="stat-icon"/>
+                        </hbox>
+                        <span id="totalPropertiesSpan" classNames="stat-value" text="0"/>
+                        <button text="msg://button.viewAll" 
+                               themeNames="tertiary-inline small"
+                               classNames="stat-link"/>
+                    </vbox>
+                </div>
+                
+                <!-- Total Cash Flow Card -->
+                <div id="totalCashFlowCard" classNames="stat-card card" width="100%">
+                    <vbox padding="true" spacing="true">
+                        <hbox alignItems="CENTER" justifyContent="BETWEEN">
+                            <span classNames="stat-label" text="msg://stat.totalCashFlow"/>
+                            <icon icon="MONEY" classNames="stat-icon"/>
+                        </hbox>
+                        <span id="totalCashFlowSpan" classNames="stat-value" text="$0"/>
+                        <span classNames="stat-sublabel" text="msg://stat.perMonth"/>
+                    </vbox>
+                </div>
+                
+                <!-- Average Yield Card -->
+                <div classNames="stat-card card" width="100%">
+                    <vbox padding="true" spacing="true">
+                        <hbox alignItems="CENTER" justifyContent="BETWEEN">
+                            <span classNames="stat-label" text="msg://stat.averageYield"/>
+                            <icon icon="TRENDING_UP" classNames="stat-icon"/>
+                        </hbox>
+                        <span id="averageYieldSpan" classNames="stat-value" text="0.00%"/>
+                        <span classNames="stat-sublabel" text="msg://stat.grossYield"/>
+                    </vbox>
+                </div>
+                
+                <!-- Total Invested Card -->
+                <div classNames="stat-card card" width="100%">
+                    <vbox padding="true" spacing="true">
+                        <hbox alignItems="CENTER" justifyContent="BETWEEN">
+                            <span classNames="stat-label" text="msg://stat.totalInvested"/>
+                            <icon icon="WALLET" classNames="stat-icon"/>
+                        </hbox>
+                        <span id="totalInvestedSpan" classNames="stat-value" text="$0"/>
+                        <span classNames="stat-sublabel" text="msg://stat.cashInvested"/>
+                    </vbox>
+                </div>
+                
+            </hbox>
+            
+            <!-- Best Property and Attention Cards -->
+            <hbox width="100%" spacing="true">
+                
+                <!-- Best Property Card -->
+                <div id="bestPropertyCard" classNames="highlight-card card success-card" width="100%">
+                    <vbox padding="true" spacing="true">
+                        <hbox alignItems="CENTER" spacing="true">
+                            <icon icon="TROPHY" classNames="highlight-icon"/>
+                            <span classNames="highlight-label" text="msg://stat.bestProperty"/>
+                        </hbox>
+                        <span id="bestPropertySpan" classNames="highlight-value" text=""/>
+                        <button id="bestPropertyButton" 
+                               text="msg://button.viewDetails" 
+                               themeNames="success small"
+                               visible="false"/>
+                    </vbox>
+                </div>
+                
+                <!-- Property Needing Attention Card -->
+                <div id="attentionPropertyCard" classNames="highlight-card card warning-card" width="100%">
+                    <vbox padding="true" spacing="true">
+                        <hbox alignItems="CENTER" spacing="true">
+                            <icon icon="WARNING" classNames="highlight-icon"/>
+                            <span classNames="highlight-label" text="msg://stat.needsAttention"/>
+                        </hbox>
+                        <span id="attentionPropertySpan" classNames="highlight-value" text=""/>
+                        <button id="attentionPropertyButton" 
+                               text="msg://button.review" 
+                               themeNames="contrast small"
+                               visible="false"/>
+                    </vbox>
+                </div>
+                
+            </hbox>
+            
+            <!-- Main Content Grid -->
+            <hbox width="100%" spacing="true" alignItems="STRETCH">
+                
+                <!-- Left Column: Recent Activity and Charts -->
+                <vbox width="60%" spacing="true">
+                    
+                    <!-- Recent Activity Section -->
+                    <div classNames="card section-card">
+                        <vbox padding="true" spacing="true">
+                            <hbox alignItems="CENTER" justifyContent="BETWEEN">
+                                <h3 text="msg://section.recentActivity"/>
+                                <button text="msg://button.viewAll" 
+                                       themeNames="tertiary-inline small"/>
+                            </hbox>
+                            
+                            <vbox id="recentActivityList" 
+                                  spacing="true" 
+                                  classNames="activity-list">
+                                <!-- Activity items added dynamically -->
+                            </vbox>
+                            
+                            <div id="emptyActivityDiv" 
+                                 classNames="empty-state-small" 
+                                 visible="false">
+                                <vbox padding="true" spacing="true" alignItems="CENTER">
+                                    <icon icon="CLOCK" size="32px" classNames="empty-icon"/>
+                                    <span text="msg://activity.empty" classNames="empty-text"/>
+                                </vbox>
+                            </div>
+                        </vbox>
+                    </div>
+                    
+                    <!-- Portfolio Performance Charts -->
+                    <div classNames="card section-card">
+                        <vbox padding="true" spacing="true">
+                            <h3 text="msg://section.portfolioPerformance"/>
+                            
+                            <!-- Cash Flow Chart -->
+                            <vbox spacing="true">
+                                <h4 text="msg://chart.cashFlowByProperty"/>
+                                <div id="cashFlowChartDiv" classNames="chart-container">
+                                    <!-- Chart rendered dynamically -->
+                                </div>
+                            </vbox>
+                            
+                            <!-- Investment Distribution Chart -->
+                            <vbox spacing="true">
+                                <h4 text="msg://chart.investmentDistribution"/>
+                                <div id="investmentChartDiv" classNames="chart-container">
+                                    <!-- Chart rendered dynamically -->
+                                </div>
+                            </vbox>
+                        </vbox>
+                    </div>
+                    
+                </vbox>
+                
+                <!-- Right Column: Quick Actions and Recommendations -->
+                <vbox width="40%" spacing="true">
+                    
+                    <!-- Quick Actions Section -->
+                    <div classNames="card section-card">
+                        <vbox padding="true" spacing="true">
+                            <h3 text="msg://section.quickActions"/>
+                            
+                            <button id="analyzeNewPropertyButton"
+                                   text="msg://button.analyzeNewProperty"
+                                   icon="PLUS"
+                                   themeNames="primary large"
+                                   width="100%"/>
+                            
+                            <button id="comparePropertiesButton"
+                                   text="msg://button.compareProperties"
+                                   icon="SPLIT"
+                                   themeNames="contrast"
+                                   width="100%"/>
+                            
+                            <button id="viewAllAnalysesButton"
+                                   text="msg://button.viewAllAnalyses"
+                                   icon="LIST"
+                                   themeNames="tertiary"
+                                   width="100%"/>
+                            
+                            <!-- Upgrade Banner (Free Tier Only) -->
+                            <div id="upgradeBanner" 
+                                 classNames="upgrade-banner" 
+                                 visible="false">
+                                <vbox padding="true" spacing="true">
+                                    <hbox alignItems="CENTER" spacing="true">
+                                        <icon icon="STAR" classNames="upgrade-icon"/>
+                                        <span classNames="upgrade-title" text="msg://upgrade.title"/>
+                                    </hbox>
+                                    <span classNames="upgrade-text" text="msg://upgrade.message"/>
+                                    <button id="upgradeButton"
+                                           text="msg://button.upgradePlan"
+                                           icon="ARROW_UP"
+                                           themeNames="success"
+                                           width="100%"/>
+                                </vbox>
+                            </div>
+                        </vbox>
+                    </div>
+                    
+                    <!-- Recommendations Section -->
+                    <div classNames="card section-card">
+                        <vbox padding="true" spacing="true">
+                            <hbox alignItems="CENTER" spacing="true">
+                                <icon icon="LIGHTBULB" classNames="section-icon"/>
+                                <h3 text="msg://section.recommendations"/>
+                            </hbox>
+                            
+                            <vbox id="recommendationsList" 
+                                  spacing="true" 
+                                  classNames="recommendations-list">
+                                <!-- Recommendations added dynamically -->
+                            </vbox>
+                        </vbox>
+                    </div>
+                    
+                </vbox>
+                
+            </hbox>
+            
+        </vbox>
+    </layout>
+    
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    
+</view>

@@ -1,0 +1,363 @@
+/* User Dashboard Styles */
+
+/* Welcome Section */
+.welcome-section {
+    background: linear-gradient(135deg, var(--lumo-primary-color) 0%, var(--lumo-primary-color-50pct) 100%);
+    border-radius: var(--lumo-border-radius-l);
+    color: var(--lumo-primary-contrast-color);
+    margin-bottom: var(--lumo-space-l);
+}
+
+.welcome-section h1 {
+    margin: 0;
+    font-size: var(--lumo-font-size-xxl);
+    font-weight: 600;
+}
+
+.current-date {
+    font-size: var(--lumo-font-size-m);
+    opacity: 0.9;
+}
+
+/* Summary Statistics Cards */
+.stats-cards-container {
+    margin-bottom: var(--lumo-space-l);
+}
+
+.stat-card {
+    background: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-m);
+    box-shadow: var(--lumo-box-shadow-xs);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--lumo-box-shadow-s);
+}
+
+.stat-label {
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-secondary-text-color);
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: var(--lumo-font-size-xxxl);
+    font-weight: 700;
+    color: var(--lumo-primary-text-color);
+}
+
+.stat-sublabel {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-tertiary-text-color);
+}
+
+.stat-icon {
+    color: var(--lumo-primary-color);
+    font-size: 24px;
+}
+
+.stat-link {
+    margin-top: var(--lumo-space-xs);
+}
+
+/* Cash Flow Card Colors */
+.positive-cash-flow {
+    border-left: 4px solid var(--lumo-success-color);
+}
+
+.negative-cash-flow {
+    border-left: 4px solid var(--lumo-error-color);
+}
+
+.positive-cash-flow .stat-value {
+    color: var(--lumo-success-text-color);
+}
+
+.negative-cash-flow .stat-value {
+    color: var(--lumo-error-text-color);
+}
+
+/* Highlight Cards */
+.highlight-card {
+    border-radius: var(--lumo-border-radius-m);
+    box-shadow: var(--lumo-box-shadow-xs);
+}
+
+.success-card {
+    background: var(--lumo-success-color-10pct);
+    border-left: 4px solid var(--lumo-success-color);
+}
+
+.warning-card {
+    background: var(--lumo-warning-color-10pct);
+    border-left: 4px solid var(--lumo-warning-color);
+}
+
+.highlight-icon {
+    font-size: 20px;
+}
+
+.success-card .highlight-icon {
+    color: var(--lumo-success-color);
+}
+
+.warning-card .highlight-icon {
+    color: var(--lumo-warning-color);
+}
+
+.highlight-label {
+    font-size: var(--lumo-font-size-s);
+    font-weight: 500;
+    color: var(--lumo-secondary-text-color);
+}
+
+.highlight-value {
+    font-size: var(--lumo-font-size-l);
+    font-weight: 600;
+    color: var(--lumo-primary-text-color);
+}
+
+/* Section Cards */
+.section-card {
+    background: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-m);
+    box-shadow: var(--lumo-box-shadow-xs);
+}
+
+.section-card h3 {
+    margin: 0;
+    font-size: var(--lumo-font-size-l);
+    font-weight: 600;
+    color: var(--lumo-primary-text-color);
+}
+
+.section-card h4 {
+    margin: var(--lumo-space-m) 0 var(--lumo-space-s) 0;
+    font-size: var(--lumo-font-size-m);
+    font-weight: 500;
+    color: var(--lumo-secondary-text-color);
+}
+
+.section-icon {
+    color: var(--lumo-primary-color);
+    font-size: 20px;
+}
+
+/* Recent Activity */
+.activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    padding: var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-s);
+    transition: background-color 0.2s;
+}
+
+.activity-item:hover {
+    background-color: var(--lumo-contrast-5pct);
+}
+
+.activity-icon {
+    color: var(--lumo-primary-color);
+    font-size: 20px;
+}
+
+.activity-name {
+    font-size: var(--lumo-font-size-m);
+    font-weight: 500;
+    color: var(--lumo-primary-text-color);
+}
+
+.activity-timestamp {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-tertiary-text-color);
+}
+
+.empty-state-small {
+    padding: var(--lumo-space-l);
+    text-align: center;
+}
+
+.empty-icon {
+    color: var(--lumo-contrast-30pct);
+}
+
+.empty-text {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+/* Charts */
+.chart-container {
+    padding: var(--lumo-space-m) 0;
+}
+
+.empty-chart-message {
+    display: block;
+    text-align: center;
+    padding: var(--lumo-space-l);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+/* Cash Flow Bar Chart */
+.cash-flow-bar-container {
+    margin-bottom: var(--lumo-space-m);
+}
+
+.chart-property-name {
+    font-size: var(--lumo-font-size-s);
+    font-weight: 500;
+    color: var(--lumo-primary-text-color);
+}
+
+.positive-value {
+    color: var(--lumo-success-text-color);
+    font-weight: 600;
+}
+
+.negative-value {
+    color: var(--lumo-error-text-color);
+    font-weight: 600;
+}
+
+.bar-background {
+    height: 8px;
+    background-color: var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-s);
+    overflow: hidden;
+    margin-top: var(--lumo-space-xs);
+}
+
+.bar-positive {
+    height: 100%;
+    background: linear-gradient(90deg, var(--lumo-success-color) 0%, var(--lumo-success-color-50pct) 100%);
+    border-radius: var(--lumo-border-radius-s);
+    transition: width 0.3s ease;
+}
+
+.bar-negative {
+    height: 100%;
+    background: linear-gradient(90deg, var(--lumo-error-color) 0%, var(--lumo-error-color-50pct) 100%);
+    border-radius: var(--lumo-border-radius-s);
+    transition: width 0.3s ease;
+}
+
+/* Investment Distribution Chart */
+.investment-segment {
+    padding: var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-s);
+    transition: background-color 0.2s;
+}
+
+.investment-segment:hover {
+    background-color: var(--lumo-contrast-5pct);
+}
+
+.color-indicator {
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--lumo-primary-color) 0%, var(--lumo-primary-color-50pct) 100%);
+}
+
+.segment-name {
+    font-size: var(--lumo-font-size-s);
+    font-weight: 500;
+    color: var(--lumo-primary-text-color);
+}
+
+.segment-amount {
+    font-size: var(--lumo-font-size-m);
+    font-weight: 600;
+    color: var(--lumo-primary-text-color);
+}
+
+.segment-percentage {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
+/* Recommendations */
+.recommendations-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.recommendation-item {
+    padding: var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-s);
+    background-color: var(--lumo-primary-color-10pct);
+    margin-bottom: var(--lumo-space-s);
+}
+
+.recommendation-icon {
+    color: var(--lumo-warning-color);
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.recommendation-text {
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-primary-text-color);
+    line-height: 1.5;
+}
+
+.no-recommendations {
+    display: block;
+    text-align: center;
+    padding: var(--lumo-space-l);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+/* Upgrade Banner */
+.upgrade-banner {
+    background: linear-gradient(135deg, var(--lumo-success-color-10pct) 0%, var(--lumo-success-color-50pct) 100%);
+    border-radius: var(--lumo-border-radius-m);
+    border: 2px solid var(--lumo-success-color);
+    margin-top: var(--lumo-space-m);
+}
+
+.upgrade-icon {
+    color: var(--lumo-success-color);
+    font-size: 24px;
+}
+
+.upgrade-title {
+    font-size: var(--lumo-font-size-m);
+    font-weight: 600;
+    color: var(--lumo-primary-text-color);
+}
+
+.upgrade-text {
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-secondary-text-color);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .stats-cards-container {
+        flex-wrap: wrap;
+    }
+    
+    .stat-card {
+        min-width: calc(50% - var(--lumo-space-s));
+    }
+}
+
+@media (max-width: 768px) {
+    .stat-card {
+        min-width: 100%;
+    }
+    
+    .welcome-section h1 {
+        font-size: var(--lumo-font-size-xl);
+    }
+    
+    .stat-value {
+        font-size: var(--lumo-font-size-xxl);
+    }
+}

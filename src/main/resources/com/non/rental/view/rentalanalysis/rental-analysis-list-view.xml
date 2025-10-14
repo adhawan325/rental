@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://RentalAnalysisListView.title"
+      focusComponent="searchField">
+    
+    <layout padding="true" spacing="true">
+        <vbox padding="true" spacing="true" width="100%" maxWidth="1400px" alignSelf="CENTER">
+            
+            <!-- Header Section -->
+            <hbox width="100%" alignItems="CENTER" justifyContent="BETWEEN">
+                <vbox spacing="false">
+                    <h1 text="msg://header.title"/>
+                    <p text="msg://header.subtitle" classNames="subtitle-text"/>
+                </vbox>
+                
+                <button id="newAnalysisButton"
+                       text="msg://button.newAnalysis"
+                       themeNames="primary large"
+                       icon="PLUS"/>
+            </hbox>
+            
+            <!-- Tier Limit Info -->
+            <div id="tierLimitDiv" classNames="tier-limit-box">
+                <hbox alignItems="CENTER" spacing="true">
+                    <icon icon="INFO_CIRCLE"/>
+                    <span id="analysisCountSpan" text="0 saved"/>
+                    <span text="msg://tierLimit.message"/>
+                </hbox>
+            </div>
+            
+            <!-- Search and Filter Section -->
+            <vbox classNames="filter-section card" padding="true" spacing="true">
+                <hbox width="100%" spacing="true" alignItems="END">
+                    <!-- Search Field -->
+                    <textField id="searchField"
+                              label="msg://field.search"
+                              width="100%"
+                              maxWidth="400px"
+                              prefixComponent="SEARCH"/>
+                    
+                    <!-- Filter Dropdown -->
+                    <comboBox id="filterComboBox"
+                             label="msg://field.filter"
+                             width="200px"/>
+                    
+                    <!-- Sort Dropdown -->
+                    <comboBox id="sortComboBox"
+                             label="msg://field.sort"
+                             width="200px"/>
+                    
+                    <!-- View Toggle Button -->
+                    <button id="viewToggleButton"
+                           icon="LIST"
+                           themeNames="tertiary"
+                           ariaLabel="Toggle view"/>
+                </hbox>
+                
+                <!-- Bulk Actions Bar -->
+                <hbox id="bulkActionsLayout"
+                      classNames="bulk-actions-bar"
+                      spacing="true"
+                      alignItems="CENTER"
+                      visible="false">
+                    <checkbox id="selectAllCheckbox"
+                             label="msg://checkbox.selectAll"/>
+                    
+                    <button id="bulkDeleteButton"
+                           text="msg://button.bulkDelete"
+                           icon="TRASH"
+                           themeNames="error"/>
+                    
+                    <button id="bulkExportButton"
+                           text="msg://button.bulkExport"
+                           icon="DOWNLOAD"
+                           themeNames="contrast"/>
+                    
+                    <button id="addToComparisonButton"
+                           text="msg://button.addToComparison"
+                           icon="SPLIT"
+                           themeNames="primary"/>
+                </hbox>
+            </vbox>
+            
+            <!-- Analyses Container -->
+            <vbox id="analysesContainer"
+                  classNames="analyses-container"
+                  spacing="true"
+                  width="100%">
+                <!-- Analysis cards/list items will be added dynamically -->
+            </vbox>
+            
+            <!-- Empty State -->
+            <div id="emptyStateDiv"
+                 classNames="empty-state card"
+                 visible="false">
+                <vbox padding="true" spacing="true" alignItems="CENTER">
+                    <icon icon="FILE_TEXT_O" size="64px" classNames="empty-state-icon"/>
+                    <h2 text="msg://emptyState.title"/>
+                    <p text="msg://emptyState.message" classNames="empty-state-message"/>
+                    <button text="msg://button.analyzeFirstProperty"
+                           themeNames="primary large"
+                           icon="PLUS"/>
+                    <button text="msg://button.viewSample"
+                           themeNames="tertiary"
+                           icon="EYE"/>
+                </vbox>
+            </div>
+            
+        </vbox>
+    </layout>
+    
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    
+</view>

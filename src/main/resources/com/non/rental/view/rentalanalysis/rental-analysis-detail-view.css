@@ -1,0 +1,158 @@
+/* Rental Analysis Detail View Styles */
+
+.rental-analysis-detail-view {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Property Header */
+.property-header {
+    background: var(--lumo-contrast-5pct);
+    padding: var(--lumo-space-m);
+    border-radius: var(--lumo-border-radius);
+    margin-bottom: var(--lumo-space-l);
+}
+
+/* Tab Content */
+.tab-content {
+    min-height: 400px;
+}
+
+/* Form Sections */
+.form-section {
+    background: var(--lumo-base-color);
+    padding: var(--lumo-space-m);
+    border-radius: var(--lumo-border-radius);
+    margin-bottom: var(--lumo-space-m);
+    border: 1px solid var(--lumo-contrast-10pct);
+}
+
+.form-section h4 {
+    margin-top: 0;
+    margin-bottom: var(--lumo-space-m);
+    color: var(--lumo-primary-text-color);
+    font-size: var(--lumo-font-size-l);
+}
+
+/* Summary Box */
+.summary-box {
+    background: var(--lumo-primary-color-10pct);
+    padding: var(--lumo-space-m);
+    border-radius: var(--lumo-border-radius);
+    border-left: 4px solid var(--lumo-primary-color);
+    margin-top: var(--lumo-space-m);
+}
+
+.summary-box h4 {
+    margin-top: 0;
+    margin-bottom: var(--lumo-space-m);
+    color: var(--lumo-primary-text-color);
+}
+
+.summary-label {
+    font-weight: 500;
+    color: var(--lumo-secondary-text-color);
+}
+
+.summary-value {
+    font-weight: bold;
+    font-size: var(--lumo-font-size-xl);
+    color: var(--lumo-primary-text-color);
+}
+
+/* Payment Display */
+.payment-display {
+    background: var(--lumo-success-color-10pct);
+    padding: var(--lumo-space-l);
+    border-radius: var(--lumo-border-radius);
+    text-align: center;
+    margin-top: var(--lumo-space-m);
+    border: 2px solid var(--lumo-success-color-50pct);
+}
+
+.payment-display h4 {
+    margin-top: 0;
+    margin-bottom: var(--lumo-space-m);
+    color: var(--lumo-success-text-color);
+}
+
+.payment-label {
+    font-weight: 500;
+    color: var(--lumo-secondary-text-color);
+}
+
+.payment-value {
+    font-weight: bold;
+    font-size: var(--lumo-font-size-xl);
+    color: var(--lumo-success-text-color);
+}
+
+.payment-label-total {
+    font-weight: 700;
+    font-size: var(--lumo-font-size-l);
+    color: var(--lumo-primary-text-color);
+}
+
+.payment-value-total {
+    font-weight: 900;
+    font-size: var(--lumo-font-size-xxl);
+    color: var(--lumo-success-text-color);
+}
+
+/* Amortization Preview */
+.amortization-preview {
+    background: var(--lumo-contrast-5pct);
+    padding: var(--lumo-space-m);
+    border-radius: var(--lumo-border-radius);
+    margin-top: var(--lumo-space-m);
+}
+
+.amortization-preview h4 {
+    margin-top: 0;
+    margin-bottom: var(--lumo-space-s);
+    color: var(--lumo-primary-text-color);
+    font-size: var(--lumo-font-size-m);
+}
+
+/* Warnings Container */
+.warnings-container {
+    margin-top: var(--lumo-space-m);
+    margin-bottom: var(--lumo-space-m);
+}
+
+/* Helper Text */
+.helper-text {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+    font-style: italic;
+    margin-top: var(--lumo-space-xs);
+}
+
+/* Detail Actions */
+.detail-actions {
+    margin-top: var(--lumo-space-l);
+    padding-top: var(--lumo-space-m);
+    border-top: 1px solid var(--lumo-contrast-10pct);
+    justify-content: flex-end;
+    gap: var(--lumo-space-s);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .rental-analysis-detail-view {
+        padding: var(--lumo-space-s);
+    }
+    
+    .form-section {
+        padding: var(--lumo-space-s);
+    }
+    
+    .summary-value,
+    .payment-value {
+        font-size: var(--lumo-font-size-l);
+    }
+    
+    .payment-value-total {
+        font-size: var(--lumo-font-size-xl);
+    }
+}

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1" author="rental">
+        <createTable tableName="BILLING_HISTORY">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_BILLING_HISTORY"/>
+            </column>
+            <column name="VERSION" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="USER_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="BILLING_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="AMOUNT" type="DECIMAL(10, 2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DESCRIPTION" type="VARCHAR(255)"/>
+            <column name="PLAN" type="VARCHAR(255)"/>
+            <column name="BILLING_CYCLE" type="VARCHAR(255)"/>
+            <column name="STRIPE_INVOICE_ID" type="VARCHAR(255)"/>
+            <column name="STRIPE_INVOICE_URL" type="VARCHAR(255)"/>
+            <column name="STATUS" type="VARCHAR(255)"/>
+            <column name="PAYMENT_METHOD_LAST4" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="2" author="rental">
+        <createTable tableName="USER_SUBSCRIPTION">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_USER_SUBSCRIPTION"/>
+            </column>
+            <column name="VERSION" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="USER_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PLAN" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="BILLING_CYCLE" type="VARCHAR(255)"/>
+            <column name="START_DATE" type="DATE"/>
+            <column name="RENEWAL_DATE" type="DATE"/>
+            <column name="CANCEL_AT_PERIOD_END" type="BOOLEAN"/>
+            <column name="STRIPE_CUSTOMER_ID" type="VARCHAR(255)"/>
+            <column name="STRIPE_SUBSCRIPTION_ID" type="VARCHAR(255)"/>
+            <column name="STRIPE_PAYMENT_METHOD_ID" type="VARCHAR(255)"/>
+            <column name="PAYMENT_METHOD_LAST4" type="VARCHAR(255)"/>
+            <column name="PAYMENT_METHOD_BRAND" type="VARCHAR(255)"/>
+            <column name="ACTIVE" type="BOOLEAN"/>
+            <column name="SAVED_ANALYSES_COUNT" type="INT"/>
+            <column name="COMPARISONS_COUNT" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="3" author="rental">
+        <createIndex indexName="IDX_BILLING_HISTORY_DATE" tableName="BILLING_HISTORY">
+            <column name="BILLING_DATE"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="4" author="rental">
+        <createIndex indexName="IDX_BILLING_HISTORY_USER" tableName="BILLING_HISTORY">
+            <column name="USER_ID"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="BILLING_HISTORY"
+                                 constraintName="FK_BILLING_HISTORY_ON_USER" referencedColumnNames="ID"
+                                 referencedTableName="RENTAL_USER"/>
+    </changeSet>
+    <changeSet id="5" author="rental">
+        <createIndex indexName="IDX_USER_SUBSCRIPTION_USER" tableName="USER_SUBSCRIPTION">
+            <column name="USER_ID"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="USER_SUBSCRIPTION"
+                                 constraintName="FK_USER_SUBSCRIPTION_ON_USER" referencedColumnNames="ID"
+                                 referencedTableName="RENTAL_USER"/>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://subscriptionView.title">
+    
+    <data>
+        <collection id="billingHistoryDc" class="com.non.rental.entity.BillingHistory">
+            <fetchPlan extends="_base"/>
+        </collection>
+    </data>
+    
+    <layout padding="true" spacing="true">
+        <vbox padding="true" spacing="true" width="100%" maxWidth="1400px" alignSelf="CENTER">
+            
+            <!-- Header -->
+            <h1 text="msg://header.title"/>
+            <p text="msg://header.subtitle" style="color: #6b7280; margin-bottom: 2rem;"/>
+            
+            <!-- Current Plan Section -->
+            <vbox id="currentPlanSection" 
+                  spacing="true" 
+                  width="100%"
+                  style="margin-bottom: 2rem;">
+            </vbox>
+            
+            <!-- Pricing Plans Section -->
+            <vbox id="pricingPlansSection" 
+                  spacing="true" 
+                  width="100%"
+                  style="margin-bottom: 2rem;">
+                
+                <!-- Billing Cycle Toggle -->
+                <hbox spacing="true" alignItems="CENTER" style="margin-bottom: 1rem;">
+                    <span text="msg://label.monthly"/>
+                    <checkbox id="billingCycleToggle" 
+                             themeNames="switch"
+                             value="false"/>
+                    <span text="msg://label.annual"/>
+                    <span text="msg://label.savings" 
+                          style="color: #10b981; font-weight: bold; margin-left: 0.5rem;"/>
+                </hbox>
+            </vbox>
+            
+            <!-- Billing Information Section -->
+            <vbox id="billingSection" 
+                  spacing="true" 
+                  width="100%"
+                  style="margin-bottom: 2rem;">
+                
+                <!-- Billing History Grid -->
+                <dataGrid id="billingHistoryGrid"
+                         dataContainer="billingHistoryDc"
+                         width="100%"
+                         minHeight="300px">
+                    <columns>
+                        <column property="billingDate"/>
+                        <column property="description"/>
+                        <column property="amount"/>
+                        <column property="status"/>
+                    </columns>
+                </dataGrid>
+            </vbox>
+            
+        </vbox>
+    </layout>
+</view>

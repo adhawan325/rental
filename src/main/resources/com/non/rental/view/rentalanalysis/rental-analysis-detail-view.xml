@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
+      title="msg://rentalAnalysisDetailView.title"
+      focusComponent="mainTabs">
+    <data>
+        <instance id="rentalAnalysisDc"
+                  class="com.non.rental.entity.RentalAnalysis">
+            <fetchPlan extends="_base">
+                <property name="user" fetchPlan="_base"/>
+                <property name="purchaseDetails" fetchPlan="_base"/>
+                <property name="financingDetails" fetchPlan="_base"/>
+                <property name="incomeProjection" fetchPlan="_base"/>
+                <property name="expenseProjection" fetchPlan="_base"/>
+                <property name="calculatedMetrics" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout>
+        <vbox id="mainLayout" classNames="rental-analysis-detail-view" padding="true" spacing="true">
+            <!-- Header with property info -->
+            <div id="propertyHeaderDiv" classNames="property-header"/>
+            
+            <!-- Main tabs -->
+            <tabs id="mainTabs" width="100%">
+                <tab id="purchaseTab" label="msg://tab.purchase"/>
+                <tab id="financingTab" label="msg://tab.financing"/>
+                <tab id="incomeTab" label="msg://tab.income"/>
+                <tab id="expensesTab" label="msg://tab.expenses"/>
+                <tab id="resultsTab" label="msg://tab.results"/>
+            </tabs>
+            
+            <!-- Purchase Content -->
+            <vbox id="purchaseContent" classNames="tab-content" padding="true" spacing="true" visible="false">
+                <formLayout id="purchasePriceSection" classNames="form-section">
+                    <h4 text="msg://section.purchasePrice" colspan="2"/>
+                    <textField id="purchasePriceField" 
+                               dataContainer="rentalAnalysisDc" 
+                               property="purchaseDetails.purchasePrice"
+                               label="msg://field.purchasePrice"
+                               helperText="msg://helper.purchasePrice"
+                               required="true"/>
+                </formLayout>
+                
+                <div id="purchaseWarningsDiv" classNames="warnings-container"/>
+                
+                <formLayout id="downPaymentSection" classNames="form-section">
+                    <h4 text="msg://section.downPayment" colspan="2"/>
+                    <textField id="downPaymentAmountField"
+                               dataContainer="rentalAnalysisDc"
+                               property="purchaseDetails.downPaymentAmount"
+                               label="msg://field.downPaymentAmount"/>
+                    <textField id="downPaymentPercentField"
+                               dataContainer="rentalAnalysisDc"
+                               property="purchaseDetails.downPaymentPercent"
+                               label="msg://field.downPaymentPercent"
+                               helperText="msg://helper.downPayment"/>
+                </formLayout>
+                
+                <formLayout id="closingCostsSection" classNames="form-section">
+                    <h4 text="msg://section.closingCosts" colspan="2"/>
+                    <textField id="closingCostsField"
+                               dataContainer="rentalAnalysisDc"
+                               property="purchaseDetails.closingCosts"
+                               label="msg://field.closingCosts"/>
+                    <textField id="closingCostsPercentField"
+                               dataContainer="rentalAnalysisDc"
+                               property="purchaseDetails.closingCostsPercent"
+                               label="msg://field.closingCostsPercent"
+                               helperText="msg://helper.closingCosts"/>
+                </formLayout>
+                
+                <formLayout id="renovationSection" classNames="form-section">
+                    <h4 text="msg://section.renovation" colspan="2"/>
+                    <textField id="renovationCostsField"
+                               dataContainer="rentalAnalysisDc"
+                               property="purchaseDetails.renovationCosts"
+                               label="msg://field.renovationCosts"
+                               helperText="msg://helper.renovation"/>
+                </formLayout>
+                
+                <div id="purchaseSummaryBox" classNames="summary-box">
+                    <h4 text="msg://section.purchaseSummary"/>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.totalCashInvested" classNames="summary-label"/>
+                        <span id="totalCashInvestedSpan" classNames="summary-value"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.loanAmount" classNames="summary-label"/>
+                        <span id="loanAmountSpan" classNames="summary-value"/>
+                    </hbox>
+                </div>
+            </vbox>
+            
+            <!-- Financing Content -->
+            <vbox id="financingContent" classNames="tab-content" padding="true" spacing="true" visible="false">
+                <formLayout id="loanInfoSection" classNames="form-section">
+                    <h4 text="msg://section.loanInfo" colspan="2"/>
+                    <textField id="loanAmountField"
+                               dataContainer="rentalAnalysisDc"
+                               property="financingDetails.loanAmount"
+                               label="msg://field.loanAmount"
+                               readOnly="true"/>
+                    <textField id="interestRateField"
+                               dataContainer="rentalAnalysisDc"
+                               property="financingDetails.interestRate"
+                               label="msg://field.interestRate"
+                               helperText="msg://helper.interestRate"
+                               required="true"/>
+                </formLayout>
+                
+                <formLayout id="loanTermSection" classNames="form-section">
+                    <h4 text="msg://section.loanTerm" colspan="2"/>
+                    <select id="loanTermSelect"
+                            label="msg://field.loanTerm"
+                            helperText="msg://helper.loanTerm"/>
+                </formLayout>
+                
+                <formLayout id="pointsSection" classNames="form-section">
+                    <h4 text="msg://section.points" colspan="2"/>
+                    <textField id="pointsPaidField"
+                               dataContainer="rentalAnalysisDc"
+                               property="financingDetails.pointsPaid"
+                               label="msg://field.pointsPaid"
+                               helperText="msg://helper.points"/>
+                </formLayout>
+                
+                <div id="monthlyPaymentDisplay" classNames="payment-display">
+                    <h4 text="msg://section.monthlyPayment"/>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.principalInterest" classNames="payment-label"/>
+                        <span id="principalInterestSpan" classNames="payment-value"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.totalMonthlyPayment" classNames="payment-label-total"/>
+                        <span id="totalMonthlyPaymentSpan" classNames="payment-value-total"/>
+                    </hbox>
+                </div>
+                
+                <vbox id="amortizationPreview" classNames="amortization-preview"/>
+            </vbox>
+            
+            <!-- Income Content (Placeholder) -->
+            <vbox id="incomeContent" classNames="tab-content" padding="true" spacing="true" visible="false">
+                <span text="msg://placeholder.income"/>
+            </vbox>
+            
+            <!-- Expenses Content (Placeholder) -->
+            <vbox id="expensesContent" classNames="tab-content" padding="true" spacing="true" visible="false">
+                <span text="msg://placeholder.expenses"/>
+            </vbox>
+            
+            <!-- Results Content (Placeholder) -->
+            <vbox id="resultsContent" classNames="tab-content" padding="true" spacing="true" visible="false">
+                <span text="msg://placeholder.results"/>
+            </vbox>
+            
+            <!-- Action buttons -->
+            <hbox id="detailActions" classNames="detail-actions">
+                <button id="saveButton" action="saveAction"/>
+                <button id="closeButton" action="closeAction"/>
+            </hbox>
+        </vbox>
+    </layout>
+</view>

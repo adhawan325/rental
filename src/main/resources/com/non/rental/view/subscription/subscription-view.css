@@ -1,0 +1,40 @@
+/* Subscription View Styles */
+
+.current-plan-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.current-plan-card h3,
+.current-plan-card h4,
+.current-plan-card p,
+.current-plan-card li {
+    color: white;
+}
+
+.pricing-plan-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.pricing-plan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+    color: #10b981;
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.billing-history-grid {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .pricing-plans-grid {
+        flex-direction: column;
+    }
+}

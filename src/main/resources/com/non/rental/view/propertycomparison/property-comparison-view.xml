@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://PropertyComparisonView.title"
+      focusComponent="propertySelector">
+    
+    <layout padding="true" spacing="true">
+        <vbox padding="true" spacing="true" width="100%" maxWidth="1400px" alignSelf="CENTER">
+            
+            <!-- Header -->
+            <h1 text="msg://header.title"/>
+            <p text="msg://header.subtitle" classNames="subtitle-text"/>
+            
+            <!-- Property Selection Section -->
+            <vbox classNames="selection-section card" padding="true" spacing="true">
+                <h3 text="msg://section.selectProperties"/>
+                
+                <hbox spacing="true" width="100%" alignItems="END">
+                    <comboBox id="propertySelector"
+                             label="msg://field.selectProperty"
+                             width="100%"
+                             maxWidth="600px"/>
+                    <button id="addPropertyButton"
+                           text="msg://button.addProperty"
+                           themeNames="primary"
+                           icon="PLUS"/>
+                </hbox>
+                
+                <!-- Selected Properties Chips -->
+                <hbox id="selectedPropertiesLayout"
+                      spacing="true"
+                      wrap="true"
+                      visible="true"/>
+                
+                <!-- Tier Limit Info -->
+                <div classNames="info-box">
+                    <span text="msg://info.tierLimits" classNames="info-text"/>
+                </div>
+            </vbox>
+            
+            <!-- Comparison Table Section -->
+            <vbox id="comparisonTableContainer"
+                  classNames="comparison-section card"
+                  padding="true"
+                  spacing="true"
+                  visible="true">
+                <!-- Table will be built dynamically -->
+            </vbox>
+            
+            <!-- Winner Indicator -->
+            <div id="winnerIndicatorDiv"
+                 classNames="winner-section card"
+                 visible="true">
+                <!-- Winner will be built dynamically -->
+            </div>
+            
+            <!-- Visual Comparison Charts -->
+            <vbox id="chartsContainer"
+                  classNames="charts-section card"
+                  padding="true"
+                  spacing="true"
+                  visible="true">
+                <!-- Charts will be built dynamically -->
+            </vbox>
+            
+            <!-- Export Options -->
+            <vbox classNames="export-section card" padding="true" spacing="true">
+                <h3 text="msg://section.exportOptions"/>
+                
+                <hbox spacing="true">
+                    <button id="exportPdfButton"
+                           text="msg://button.exportPdf"
+                           icon="FILE_TEXT"
+                           themeNames="contrast"/>
+                    <button id="exportCsvButton"
+                           text="msg://button.exportCsv"
+                           icon="DOWNLOAD"
+                           themeNames="contrast"/>
+                    <button id="shareButton"
+                           text="msg://button.share"
+                           icon="SHARE"
+                           themeNames="contrast"/>
+                </hbox>
+            </vbox>
+            
+            <!-- Premium Upgrade Prompt -->
+            <div id="premiumUpgradeDiv"
+                 classNames="premium-upgrade-box"
+                 visible="false">
+                <vbox padding="true" spacing="true" alignItems="CENTER">
+                    <h3 text="msg://premium.title" classNames="premium-title"/>
+                    <p text="msg://premium.message" classNames="premium-message"/>
+                    <button text="msg://button.upgradeToPremium"
+                           themeNames="primary success"
+                           icon="STAR"/>
+                </vbox>
+            </div>
+            
+        </vbox>
+    </layout>
+    
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    
+</view>
