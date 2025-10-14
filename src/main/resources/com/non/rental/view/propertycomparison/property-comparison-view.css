@@ -77,10 +77,15 @@
     background-color: #f8f9fa;
     border-bottom: 2px solid #dee2e6;
     font-weight: 600;
+    display: flex;
+    align-items: stretch;
 }
 
 .comparison-row {
     border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: stretch;
+    min-height: 60px;
 }
 
 .comparison-row:hover {
@@ -92,6 +97,11 @@
     flex: 1;
     min-width: 150px;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .metric-name-header,
@@ -99,17 +109,22 @@
     text-align: left;
     font-weight: 600;
     min-width: 200px;
+    justify-content: flex-start;
 }
 
 .property-header {
     background-color: #e7f3ff;
     border-left: 1px solid #dee2e6;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .property-name {
     font-weight: 600;
     color: #0066cc;
     display: block;
+    text-align: center;
 }
 
 .property-address {
@@ -117,11 +132,13 @@
     color: #666;
     display: block;
     margin-top: 0.25em;
+    text-align: center;
 }
 
 .metric-value {
     font-size: 1.1em;
     border-left: 1px solid #e9ecef;
+    font-weight: 500;
 }
 
 /* Best/Worst Value Highlighting */
@@ -219,13 +236,18 @@
 @media (max-width: 768px) {
     .comparison-cell {
         min-width: 120px;
-        padding: 0.75em;
+        padding: 0.75em 0.5em;
         font-size: 0.9em;
     }
     
     .metric-name-header,
     .metric-name {
         min-width: 150px;
+        font-size: 0.9em;
+    }
+    
+    .metric-value {
+        font-size: 1em;
     }
     
     .winner-name {
@@ -234,6 +256,20 @@
     
     .winner-reasoning {
         font-size: 1em;
+    }
+}
+
+@media (max-width: 480px) {
+    .comparison-cell {
+        min-width: 100px;
+        padding: 0.5em 0.25em;
+        font-size: 0.85em;
+    }
+    
+    .metric-name-header,
+    .metric-name {
+        min-width: 120px;
+        font-size: 0.85em;
     }
 }
 

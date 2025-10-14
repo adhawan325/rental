@@ -186,5 +186,5 @@
         <addForeignKeyConstraint baseColumnNames="RENTAL_ANALYSIS_ID" baseTableName="PURCHASE_DETAILS"
                                  constraintName="FK_PURCHASE_DETAILS_ON_RENTAL_ANALYSIS" referencedColumnNames="ID"
                                  referencedTableName="RENTAL_ANALYSIS"/>
-</changeSet>
+    </changeSet>
 </databaseChangeLog>

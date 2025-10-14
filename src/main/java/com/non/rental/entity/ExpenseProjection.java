@@ -79,17 +79,26 @@ public class ExpenseProjection {
 
     /**
      * Calculates property management amount from percentage of monthly rent.
+     * Only updates the field if the calculated value differs from the current value
+     * to avoid marking the entity as dirty during initialization.
      */
     public void calculatePropertyManagementAmount(BigDecimal monthlyRent) {
         if (propertyManagementPercent != null && monthlyRent != null) {
-            propertyManagementAmount = monthlyRent.multiply(
+            BigDecimal calculatedAmount = monthlyRent.multiply(
                     BigDecimal.valueOf(propertyManagementPercent / 100.0))
                     .setScale(2, BigDecimal.ROUND_HALF_UP);
+            
+            // Only update if the value has changed
+            if (propertyManagementAmount == null || calculatedAmount.compareTo(propertyManagementAmount) != 0) {
+                propertyManagementAmount = calculatedAmount;
+            }
         }
     }
 
     /**
      * Calculates maintenance amount from percentage of property value.
+     * Only updates the field if the calculated value differs from the current value
+     * to avoid marking the entity as dirty during initialization.
      */
     public void calculateMaintenanceAmount(BigDecimal propertyValue) {
         if (maintenancePercent != null && propertyValue != null) {
@@ -97,13 +106,20 @@ public class ExpenseProjection {
             BigDecimal annualMaintenance = propertyValue.multiply(
                     BigDecimal.valueOf(maintenancePercent / 100.0));
             // Convert to monthly
-            maintenanceAmount = annualMaintenance.divide(
+            BigDecimal calculatedAmount = annualMaintenance.divide(
                     BigDecimal.valueOf(12), 2, BigDecimal.ROUND_HALF_UP);
+            
+            // Only update if the value has changed
+            if (maintenanceAmount == null || calculatedAmount.compareTo(maintenanceAmount) != 0) {
+                maintenanceAmount = calculatedAmount;
+            }
         }
     }
 
     /**
      * Calculates capital expenditure amount from percentage of property value.
+     * Only updates the field if the calculated value differs from the current value
+     * to avoid marking the entity as dirty during initialization.
      */
     public void calculateCapExAmount(BigDecimal propertyValue) {
         if (capExPercent != null && propertyValue != null) {
@@ -111,8 +127,13 @@ public class ExpenseProjection {
             BigDecimal annualCapEx = propertyValue.multiply(
                     BigDecimal.valueOf(capExPercent / 100.0));
             // Convert to monthly
-            capExAmount = annualCapEx.divide(
+            BigDecimal calculatedAmount = annualCapEx.divide(
                     BigDecimal.valueOf(12), 2, BigDecimal.ROUND_HALF_UP);
+            
+            // Only update if the value has changed
+            if (capExAmount == null || calculatedAmount.compareTo(capExAmount) != 0) {
+                capExAmount = calculatedAmount;
+            }
         }
     }
 

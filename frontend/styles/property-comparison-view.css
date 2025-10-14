@@ -1,0 +1,290 @@
+/* Property Comparison View Styles */
+
+.subtitle-text {
+    color: #666;
+    font-size: 1.1em;
+    margin-bottom: 1em;
+}
+
+/* Card Styles */
+.card {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5em;
+}
+
+/* Selection Section */
+.selection-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.selection-section h3 {
+    color: white;
+    margin-top: 0;
+}
+
+.info-box {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 0.75em;
+    border-radius: 4px;
+    margin-top: 0.5em;
+}
+
+.info-text {
+    color: white;
+    font-size: 0.9em;
+}
+
+/* Property Chips */
+.property-chip {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 0.5em 1em;
+    margin: 0.25em;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.chip-label {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Instruction Message */
+.instruction-message {
+    padding: 3em;
+    text-align: center;
+}
+
+.instruction-icon {
+    color: #999;
+}
+
+.instruction-text {
+    color: #666;
+    font-weight: normal;
+}
+
+/* Comparison Table */
+.comparison-section {
+    overflow-x: auto;
+}
+
+.comparison-header-row {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    display: flex;
+    align-items: stretch;
+}
+
+.comparison-row {
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: stretch;
+    min-height: 60px;
+}
+
+.comparison-row:hover {
+    background-color: #f8f9fa;
+}
+
+.comparison-cell {
+    padding: 1em;
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.metric-name-header,
+.metric-name {
+    text-align: left;
+    font-weight: 600;
+    min-width: 200px;
+    justify-content: flex-start;
+}
+
+.property-header {
+    background-color: #e7f3ff;
+    border-left: 1px solid #dee2e6;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.property-name {
+    font-weight: 600;
+    color: #0066cc;
+    display: block;
+    text-align: center;
+}
+
+.property-address {
+    font-size: 0.85em;
+    color: #666;
+    display: block;
+    margin-top: 0.25em;
+    text-align: center;
+}
+
+.metric-value {
+    font-size: 1.1em;
+    border-left: 1px solid #e9ecef;
+    font-weight: 500;
+}
+
+/* Best/Worst Value Highlighting */
+.best-value {
+    background-color: #d4edda;
+    color: #155724;
+    font-weight: 600;
+    border: 2px solid #c3e6cb;
+}
+
+.worst-value {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 2px solid #f5c6cb;
+}
+
+/* Winner Indicator */
+.winner-section {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    text-align: center;
+}
+
+.winner-indicator {
+    padding: 2em;
+}
+
+.trophy-icon {
+    color: #ffd700;
+}
+
+.winner-title {
+    color: white;
+    margin: 0.5em 0;
+    font-size: 1.5em;
+}
+
+.winner-name {
+    color: white;
+    margin: 0.5em 0;
+    font-size: 1.8em;
+    font-weight: bold;
+}
+
+.winner-reasoning {
+    color: white;
+    font-size: 1.1em;
+    max-width: 600px;
+    margin: 1em auto;
+    line-height: 1.6;
+}
+
+/* Charts Section */
+.charts-section {
+    min-height: 300px;
+}
+
+.chart-placeholder {
+    padding: 3em;
+    text-align: center;
+    background-color: #f5f5f5;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    color: #666;
+    font-size: 1.1em;
+}
+
+/* Export Section */
+.export-section h3 {
+    margin-top: 0;
+}
+
+/* Premium Upgrade Box */
+.premium-upgrade-box {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    border: 2px solid #ff9a76;
+    border-radius: 8px;
+    padding: 2em;
+    text-align: center;
+    margin-top: 2em;
+}
+
+.premium-title {
+    color: #d63031;
+    margin: 0;
+}
+
+.premium-message {
+    color: #2d3436;
+    font-size: 1.1em;
+    margin: 1em 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .comparison-cell {
+        min-width: 120px;
+        padding: 0.75em 0.5em;
+        font-size: 0.9em;
+    }
+    
+    .metric-name-header,
+    .metric-name {
+        min-width: 150px;
+        font-size: 0.9em;
+    }
+    
+    .metric-value {
+        font-size: 1em;
+    }
+    
+    .winner-name {
+        font-size: 1.4em;
+    }
+    
+    .winner-reasoning {
+        font-size: 1em;
+    }
+}
+
+@media (max-width: 480px) {
+    .comparison-cell {
+        min-width: 100px;
+        padding: 0.5em 0.25em;
+        font-size: 0.85em;
+    }
+    
+    .metric-name-header,
+    .metric-name {
+        min-width: 120px;
+        font-size: 0.85em;
+    }
+}
+
+/* Animation for adding properties */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.property-chip {
+    animation: slideIn 0.3s ease-out;
+}

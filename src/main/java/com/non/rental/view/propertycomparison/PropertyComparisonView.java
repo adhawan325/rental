@@ -6,6 +6,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
  * Property Comparison View - allows users to compare multiple property analyses side-by-side.
  * Supports comparing 2-5 properties with color-coded metrics and visual charts.
  */
+@CssImport("./styles/property-comparison-view.css")
 @Route(value = "property-comparison", layout = MainView.class)
 @ViewController("PropertyComparisonView")
 @ViewDescriptor("property-comparison-view.xml")
@@ -127,13 +129,16 @@ public class PropertyComparisonView extends StandardView {
         availableAnalyses = dataManager.load(RentalAnalysis.class)
                 .query("select e from RentalAnalysis e " +
                        "where e.user = :user " +
-                       "and e.status = :status " +
+                       "and e.status in :statuses " +
                        "order by e.lastModifiedDate desc")
                 .parameter("user", currentUser)
-                .parameter("status", AnalysisStatus.COMPLETED.getId())
+                .parameter("statuses", java.util.Arrays.asList(
+                        AnalysisStatus.DRAFT.getId(), 
+                        AnalysisStatus.COMPLETED.getId()))
+                .fetchPlan("_base")
                 .list();
         
-        log.debug("Loaded {} completed analyses for user", availableAnalyses.size());
+        log.debug("Loaded {} analyses for user", availableAnalyses.size());
     }
     
     private void setupPropertySelector() {
@@ -314,7 +319,8 @@ public class PropertyComparisonView extends StandardView {
         Div metricHeader = new Div();
         metricHeader.addClassName("comparison-cell");
         metricHeader.addClassName("metric-name-header");
-        metricHeader.setText(messageBundle.getMessage("table.metric"));
+        Span metricHeaderSpan = new Span(messageBundle.getMessage("table.metric"));
+        metricHeader.add(metricHeaderSpan);
         headerRow.add(metricHeader);
         
         // Property columns
@@ -395,7 +401,8 @@ public class PropertyComparisonView extends StandardView {
         Div nameCell = new Div();
         nameCell.addClassName("comparison-cell");
         nameCell.addClassName("metric-name");
-        nameCell.setText(metricName);
+        Span nameSpan = new Span(metricName);
+        nameCell.add(nameSpan);
         row.add(nameCell);
         
         // Extract values for all properties
@@ -457,7 +464,8 @@ public class PropertyComparisonView extends StandardView {
             Div valueCell = new Div();
             valueCell.addClassName("comparison-cell");
             valueCell.addClassName("metric-value");
-            valueCell.setText(values.get(i));
+            Span valueSpan = new Span(values.get(i));
+            valueCell.add(valueSpan);
             
             if (highlightBestWorst) {
                 if (bestIndex != null && i == bestIndex) {

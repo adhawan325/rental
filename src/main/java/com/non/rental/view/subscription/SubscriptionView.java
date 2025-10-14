@@ -131,7 +131,7 @@ public class SubscriptionView extends StandardView {
         planHeader.setAlignItems(FlexComponent.Alignment.CENTER);
 
         H3 planName = new H3(currentSubscription.getPlan().getDisplayName() + " Plan");
-        Span badge = new Span("CURRENT");
+        Span badge = new Span(messageBundle.getMessage("label.currentBadge"));
         badge.getElement().getThemeList().add("badge success");
         badge.getStyle().set("font-size", "0.75rem");
         badge.getStyle().set("padding", "0.25rem 0.5rem");
@@ -162,16 +162,28 @@ public class SubscriptionView extends StandardView {
         Div usageStats = new Div();
         int analysesLimit = currentSubscription.getSavedAnalysesLimit();
         String analysesText = analysesLimit == -1 
-                ? String.format("%d saved analyses (Unlimited)", currentSubscription.getSavedAnalysesCount())
-                : String.format("%d of %d saved analyses", 
-                        currentSubscription.getSavedAnalysesCount(), analysesLimit);
+                ? String.format("%d %s (%s)", 
+                        currentSubscription.getSavedAnalysesCount(),
+                        messageBundle.getMessage("label.savedAnalyses"),
+                        messageBundle.getMessage("label.unlimited"))
+                : String.format("%d %s %d %s", 
+                        currentSubscription.getSavedAnalysesCount(),
+                        messageBundle.getMessage("label.of"),
+                        analysesLimit,
+                        messageBundle.getMessage("label.savedAnalyses"));
         usageStats.add(new Paragraph(analysesText));
 
         int comparisonsLimit = currentSubscription.getComparisonsLimit();
         String comparisonsText = comparisonsLimit == -1
-                ? String.format("%d comparisons (Unlimited)", currentSubscription.getComparisonsCount())
-                : String.format("%d of %d comparisons", 
-                        currentSubscription.getComparisonsCount(), comparisonsLimit);
+                ? String.format("%d %s (%s)", 
+                        currentSubscription.getComparisonsCount(),
+                        messageBundle.getMessage("label.comparisons"),
+                        messageBundle.getMessage("label.unlimited"))
+                : String.format("%d %s %d %s", 
+                        currentSubscription.getComparisonsCount(),
+                        messageBundle.getMessage("label.of"),
+                        comparisonsLimit,
+                        messageBundle.getMessage("label.comparisons"));
         usageStats.add(new Paragraph(comparisonsText));
         planCard.add(usageStats);
 
@@ -200,7 +212,7 @@ public class SubscriptionView extends StandardView {
 
         // Manage subscription button
         if (currentSubscription.getPlan() != SubscriptionPlan.FREE) {
-            JmixButton manageButton = new JmixButton(messageBundle.getMessage("button.manageSubscription"));
+            Button manageButton = new Button(messageBundle.getMessage("button.manageSubscription"));
             manageButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             manageButton.addClickListener(e -> showManageSubscriptionDialog());
             planCard.add(manageButton);
@@ -223,9 +235,9 @@ public class SubscriptionView extends StandardView {
         toggleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         toggleLayout.setSpacing(true);
         
-        Span monthlyLabel = new Span("Monthly");
-        Span annualLabel = new Span("Annual");
-        Span savingsLabel = new Span("(Save 17%)");
+        Span monthlyLabel = new Span(messageBundle.getMessage("label.monthly"));
+        Span annualLabel = new Span(messageBundle.getMessage("label.annual"));
+        Span savingsLabel = new Span(messageBundle.getMessage("label.savings"));
         savingsLabel.getStyle().set("color", "#10b981").set("font-weight", "bold");
         
         toggleLayout.add(monthlyLabel, billingCycleToggle, annualLabel, savingsLabel);
@@ -272,11 +284,11 @@ public class SubscriptionView extends StandardView {
         priceDiv.getStyle().set("text-align", "center").set("margin", "1rem 0");
         
         if (price == 0.0) {
-            H2 priceText = new H2("Free");
+            H2 priceText = new H2(messageBundle.getMessage("label.free"));
             priceDiv.add(priceText);
         } else {
             H2 priceText = new H2(CURRENCY_FORMAT.format(price));
-            Span periodText = new Span("/" + selectedBillingCycle.getDisplayName().toLowerCase());
+            Span periodText = new Span(messageBundle.getMessage("label.periodSeparator") + selectedBillingCycle.getDisplayName().toLowerCase());
             periodText.getStyle().set("color", "#6b7280");
             priceDiv.add(priceText, periodText);
         }
@@ -293,7 +305,7 @@ public class SubscriptionView extends StandardView {
             featureLayout.setSpacing(true);
             featureLayout.setAlignItems(FlexComponent.Alignment.CENTER);
             
-            Span icon = new Span("✓");
+            Span icon = new Span(messageBundle.getMessage("label.checkmark"));
             icon.getStyle().set("color", "#10b981").set("font-weight", "bold");
             Span text = new Span(feature);
             
@@ -305,12 +317,12 @@ public class SubscriptionView extends StandardView {
         card.add(featureList);
 
         // Action button
-        JmixButton actionButton;
+        Button actionButton;
         if (currentSubscription != null && currentSubscription.getPlan() == plan) {
-            actionButton = new JmixButton(messageBundle.getMessage("button.currentPlan"));
+            actionButton = new Button(messageBundle.getMessage("button.currentPlan"));
             actionButton.setEnabled(false);
         } else {
-            actionButton = new JmixButton(messageBundle.getMessage("button.selectPlan"));
+            actionButton = new Button(messageBundle.getMessage("button.selectPlan"));
             actionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             actionButton.addClickListener(e -> handlePlanSelection(plan));
         }
@@ -340,11 +352,12 @@ public class SubscriptionView extends StandardView {
         paymentCard.add(paymentTitle);
 
         if (currentSubscription.getPaymentMethodLast4() != null) {
+            String brand = currentSubscription.getPaymentMethodBrand() != null 
+                    ? currentSubscription.getPaymentMethodBrand() 
+                    : messageBundle.getMessage("label.card");
             Paragraph paymentInfo = new Paragraph(
-                    String.format("%s ending in %s", 
-                            currentSubscription.getPaymentMethodBrand() != null 
-                                    ? currentSubscription.getPaymentMethodBrand() 
-                                    : "Card",
+                    String.format(messageBundle.getMessage("message.paymentMethodFormat"), 
+                            brand,
                             currentSubscription.getPaymentMethodLast4())
             );
             paymentCard.add(paymentInfo);
@@ -352,7 +365,7 @@ public class SubscriptionView extends StandardView {
             paymentCard.add(new Paragraph(messageBundle.getMessage("message.noPaymentMethod")));
         }
 
-        JmixButton updatePaymentButton = new JmixButton(messageBundle.getMessage("button.updatePaymentMethod"));
+        Button updatePaymentButton = new Button(messageBundle.getMessage("button.updatePaymentMethod"));
         updatePaymentButton.addClickListener(e -> showUpdatePaymentMethodDialog());
         paymentCard.add(updatePaymentButton);
 
@@ -389,12 +402,12 @@ public class SubscriptionView extends StandardView {
         // Add download invoice button column
         billingHistoryGrid.addComponentColumn(history -> {
             if (history.getStripeInvoiceUrl() != null) {
-                JmixButton downloadButton = new JmixButton(messageBundle.getMessage("button.download"));
+                Button downloadButton = new Button(messageBundle.getMessage("button.download"));
                 downloadButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
                 downloadButton.addClickListener(e -> downloadInvoice(history));
                 return downloadButton;
             }
-            return new Span("-");
+            return new Span(messageBundle.getMessage("label.placeholder"));
         }).setHeader(messageBundle.getMessage("field.invoice")).setAutoWidth(true);
     }
 
@@ -448,14 +461,14 @@ public class SubscriptionView extends StandardView {
         content.add(message);
 
         HorizontalLayout buttons = new HorizontalLayout();
-        JmixButton confirmButton = new JmixButton(messageBundle.getMessage("button.confirm"));
+        Button confirmButton = new Button(messageBundle.getMessage("button.confirm"));
         confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         confirmButton.addClickListener(e -> {
             upgradePlan(newPlan);
             dialog.close();
         });
 
-        JmixButton cancelButton = new JmixButton(messageBundle.getMessage("button.cancel"));
+        Button cancelButton = new Button(messageBundle.getMessage("button.cancel"));
         cancelButton.addClickListener(e -> dialog.close());
 
         buttons.add(confirmButton, cancelButton);
@@ -480,14 +493,14 @@ public class SubscriptionView extends StandardView {
         content.add(message);
 
         HorizontalLayout buttons = new HorizontalLayout();
-        JmixButton confirmButton = new JmixButton(messageBundle.getMessage("button.confirm"));
+        Button confirmButton = new Button(messageBundle.getMessage("button.confirm"));
         confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
         confirmButton.addClickListener(e -> {
             downgradePlan();
             dialog.close();
         });
 
-        JmixButton cancelButton = new JmixButton(messageBundle.getMessage("button.cancel"));
+        Button cancelButton = new Button(messageBundle.getMessage("button.cancel"));
         cancelButton.addClickListener(e -> dialog.close());
 
         buttons.add(confirmButton, cancelButton);
@@ -513,7 +526,7 @@ public class SubscriptionView extends StandardView {
             Paragraph message = new Paragraph(messageBundle.getMessage("dialog.manage.reactivateMessage"));
             content.add(message);
 
-            JmixButton reactivateButton = new JmixButton(messageBundle.getMessage("button.reactivate"));
+            Button reactivateButton = new Button(messageBundle.getMessage("button.reactivate"));
             reactivateButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             reactivateButton.addClickListener(e -> {
                 reactivateSubscription();
@@ -525,7 +538,7 @@ public class SubscriptionView extends StandardView {
             Paragraph message = new Paragraph(messageBundle.getMessage("dialog.manage.cancelMessage"));
             content.add(message);
 
-            JmixButton cancelButton = new JmixButton(messageBundle.getMessage("button.cancelSubscription"));
+            Button cancelButton = new Button(messageBundle.getMessage("button.cancelSubscription"));
             cancelButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
             cancelButton.addClickListener(e -> {
                 cancelSubscription();
@@ -534,7 +547,7 @@ public class SubscriptionView extends StandardView {
             content.add(cancelButton);
         }
 
-        JmixButton closeButton = new JmixButton(messageBundle.getMessage("button.close"));
+        Button closeButton = new Button(messageBundle.getMessage("button.close"));
         closeButton.addClickListener(e -> dialog.close());
         content.add(closeButton);
 
@@ -557,11 +570,11 @@ public class SubscriptionView extends StandardView {
         content.add(message);
 
         // TODO: In production, integrate with Stripe Elements for secure card input
-        Paragraph note = new Paragraph("Stripe payment integration would go here.");
+        Paragraph note = new Paragraph(messageBundle.getMessage("message.stripeIntegrationNote"));
         note.getStyle().set("font-style", "italic").set("color", "#6b7280");
         content.add(note);
 
-        JmixButton closeButton = new JmixButton(messageBundle.getMessage("button.close"));
+        Button closeButton = new Button(messageBundle.getMessage("button.close"));
         closeButton.addClickListener(e -> dialog.close());
         content.add(closeButton);
 

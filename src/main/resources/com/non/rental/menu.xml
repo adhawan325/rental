@@ -2,7 +2,11 @@
 <menu-config xmlns="http://jmix.io/schema/flowui/menu">
 
     <menu id="application" title="msg://com.non.rental/menu.application.title" opened="true">
+        <item view="UserDashboardView" title="msg://com.non.rental.view.dashboard/UserDashboardView.title"/>
         <item view="PropertySearchView" title="msg://com.non.rental.view.propertysearch/propertySearchView.title"/>
+        <item view="RentalAnalysisListView" title="msg://com.non.rental.view.rentalanalysis/RentalAnalysisListView.title"/>
+        <item view="PropertyComparisonView" title="msg://com.non.rental.view.propertycomparison/PropertyComparisonView.title"/>
+        <item view="SubscriptionView" title="msg://com.non.rental.view.subscription/subscriptionView.title"/>
         <item view="rental_User.list" title="msg://com.non.rental.view.user/UserListView.title"/>
     </menu>
 

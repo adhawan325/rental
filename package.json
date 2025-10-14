@@ -16,6 +16,7 @@
     "ace-builds": "1.39.0",
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
+    "echarts": "5.4.3",
     "lit": "3.3.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -57,6 +58,7 @@
       "ace-builds": "1.39.0",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
+      "echarts": "5.4.3",
       "lit": "3.3.0",
       "react": "18.3.1",
       "react-dom": "18.3.1",
@@ -83,7 +85,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "0668741124cf8ede5b63b017db4ce7dddb778d2123c633f7c28ac30756b2fcd4"
+    "hash": "1b78aacd48a657dadd05dd4dd4114c2f4f54653bc885222febbae3fc997daec4"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -159,6 +161,7 @@
     "@vaadin/upload": "24.7.12",
     "@vaadin/router": "2.0.0",
     "@vaadin/vertical-layout": "24.7.12",
-    "@vaadin/virtual-list": "24.7.12"
+    "@vaadin/virtual-list": "24.7.12",
+    "echarts": "$echarts"
   }
 }

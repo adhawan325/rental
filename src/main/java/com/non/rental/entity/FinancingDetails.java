@@ -77,38 +77,45 @@ public class FinancingDetails {
      * P = Principal (loan amount)
      * r = Monthly interest rate (annual rate / 12)
      * n = Number of payments (years * 12)
+     * 
+     * Only updates the monthlyPayment field if the calculated value differs from the current value
+     * to avoid marking the entity as dirty during initialization.
      */
     public void calculateMonthlyPayment() {
+        BigDecimal calculatedPayment;
+        
         if (loanAmount == null || interestRate == null || loanTermYears == null) {
-            monthlyPayment = null;
-            return;
-        }
-
-        if (loanAmount.compareTo(BigDecimal.ZERO) == 0) {
-            monthlyPayment = BigDecimal.ZERO;
-            return;
-        }
-
-        if (interestRate == 0.0) {
+            calculatedPayment = null;
+        } else if (loanAmount.compareTo(BigDecimal.ZERO) == 0) {
+            calculatedPayment = BigDecimal.ZERO;
+        } else if (interestRate == 0.0) {
             // No interest - simple division
             int totalMonths = loanTermYears * 12;
-            monthlyPayment = loanAmount.divide(BigDecimal.valueOf(totalMonths), 2, BigDecimal.ROUND_HALF_UP);
-            return;
+            calculatedPayment = loanAmount.divide(BigDecimal.valueOf(totalMonths), 2, BigDecimal.ROUND_HALF_UP);
+        } else {
+            // Convert annual interest rate to monthly decimal rate
+            double monthlyRate = interestRate / 100.0 / 12.0;
+            int numberOfPayments = loanTermYears * 12;
+
+            // Calculate (1 + r)^n
+            double onePlusRatePowerN = Math.pow(1 + monthlyRate, numberOfPayments);
+
+            // Calculate monthly payment
+            double payment = loanAmount.doubleValue() * 
+                    (monthlyRate * onePlusRatePowerN) / 
+                    (onePlusRatePowerN - 1);
+
+            calculatedPayment = BigDecimal.valueOf(payment).setScale(2, BigDecimal.ROUND_HALF_UP);
         }
-
-        // Convert annual interest rate to monthly decimal rate
-        double monthlyRate = interestRate / 100.0 / 12.0;
-        int numberOfPayments = loanTermYears * 12;
-
-        // Calculate (1 + r)^n
-        double onePlusRatePowerN = Math.pow(1 + monthlyRate, numberOfPayments);
-
-        // Calculate monthly payment
-        double payment = loanAmount.doubleValue() * 
-                (monthlyRate * onePlusRatePowerN) / 
-                (onePlusRatePowerN - 1);
-
-        monthlyPayment = BigDecimal.valueOf(payment).setScale(2, BigDecimal.ROUND_HALF_UP);
+        
+        // Only update if the value has changed to avoid marking entity as dirty
+        if (calculatedPayment == null) {
+            if (monthlyPayment != null) {
+                monthlyPayment = null;
+            }
+        } else if (monthlyPayment == null || calculatedPayment.compareTo(monthlyPayment) != 0) {
+            monthlyPayment = calculatedPayment;
+        }
     }
 
     /**

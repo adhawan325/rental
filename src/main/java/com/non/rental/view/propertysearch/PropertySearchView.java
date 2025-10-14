@@ -17,6 +17,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import io.jmix.core.DataManager;
 import io.jmix.core.security.CurrentAuthentication;
+import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.textfield.TypedTextField;
@@ -57,6 +58,9 @@ public class PropertySearchView extends StandardView {
     
     @Autowired
     private CurrentAuthentication currentAuthentication;
+    
+    @Autowired
+    private SystemAuthenticator systemAuthenticator;
     
     @ViewComponent
     private TextField addressField;
@@ -165,17 +169,23 @@ public class PropertySearchView extends StandardView {
         hideError();
         hideResults();
         
+        // Get current user for authentication context
+        String currentUser = currentAuthentication.getUser().getUsername();
+        
         CompletableFuture.supplyAsync(() -> {
-            try {
-                // Fetch all data from RentCast
-                RentCastProperty property = rentCastService.getPropertyByAddress(address);
-                RentCastValueEstimate valueEstimate = rentCastService.getValueEstimate(address);
-                RentCastRentEstimate rentEstimate = rentCastService.getRentEstimate(address);
-                
-                return new PropertySearchResult(property, valueEstimate, rentEstimate);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            // Use SystemAuthenticator to provide authentication context in async thread
+            return systemAuthenticator.withUser(currentUser, () -> {
+                try {
+                    // Fetch all data from RentCast
+                    RentCastProperty property = rentCastService.getPropertyByAddress(address);
+                    RentCastValueEstimate valueEstimate = rentCastService.getValueEstimate(address);
+                    RentCastRentEstimate rentEstimate = rentCastService.getRentEstimate(address);
+                    
+                    return new PropertySearchResult(property, valueEstimate, rentEstimate);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
         })
         .thenAccept(result -> {
             getUI().ifPresent(ui -> ui.access(() -> {
@@ -412,52 +422,78 @@ public class PropertySearchView extends StandardView {
             // Set status
             analysis.setStatus(AnalysisStatus.DRAFT);
             
-            // Create and populate PurchaseDetails if we have value estimate
+            // Create and populate PurchaseDetails
+            PurchaseDetails purchaseDetails = dataManager.create(PurchaseDetails.class);
+            purchaseDetails.setRentalAnalysis(analysis);
+            purchaseDetails.setDownPaymentPercent(25.0); // Default 25%
+            purchaseDetails.setClosingCostsPercent(2.0); // Default 2%
+            
             if (currentSearchResult.hasValueEstimate()) {
-                PurchaseDetails purchaseDetails = dataManager.create(PurchaseDetails.class);
-                purchaseDetails.setRentalAnalysis(analysis);
-                
                 BigDecimal estimatedValue = currentSearchResult.getValueEstimate().getPrice();
                 if (estimatedValue != null) {
                     purchaseDetails.setPurchasePrice(estimatedValue);
                 }
-                
-                analysis.setPurchaseDetails(purchaseDetails);
             }
+            analysis.setPurchaseDetails(purchaseDetails);
             
-            // Create and populate IncomeProjection if we have rent estimate
+            // Create and populate FinancingDetails
+            FinancingDetails financingDetails = dataManager.create(FinancingDetails.class);
+            financingDetails.setRentalAnalysis(analysis);
+            financingDetails.setInterestRate(6.5); // Default rate
+            financingDetails.setLoanTermYears(30); // Default term
+            analysis.setFinancingDetails(financingDetails);
+            
+            // Create and populate IncomeProjection
+            IncomeProjection incomeProjection = dataManager.create(IncomeProjection.class);
+            incomeProjection.setRentalAnalysis(analysis);
+            incomeProjection.setVacancyRate(8.0); // Default 8%
+            
             if (currentSearchResult.hasRentEstimate()) {
-                IncomeProjection incomeProjection = dataManager.create(IncomeProjection.class);
-                incomeProjection.setRentalAnalysis(analysis);
-                
                 BigDecimal estimatedRent = currentSearchResult.getRentEstimate().getRent();
                 if (estimatedRent != null) {
                     incomeProjection.setMonthlyRent(estimatedRent);
+                } else {
+                    incomeProjection.setMonthlyRent(BigDecimal.ZERO);
                 }
-                
-                // Set default vacancy rate
-                incomeProjection.setVacancyRate(8.0);
-                
-                analysis.setIncomeProjection(incomeProjection);
+            } else {
+                incomeProjection.setMonthlyRent(BigDecimal.ZERO);
             }
+            analysis.setIncomeProjection(incomeProjection);
             
-            // Save the analysis
+            // Create and populate ExpenseProjection
+            ExpenseProjection expenseProjection = dataManager.create(ExpenseProjection.class);
+            expenseProjection.setRentalAnalysis(analysis);
+            expenseProjection.setMaintenancePercent(1.0); // 1% of property value
+            expenseProjection.setCapExPercent(0.5); // 0.5% of property value
+            analysis.setExpenseProjection(expenseProjection);
+            
+            // Create CalculatedMetrics
+            CalculatedMetrics calculatedMetrics = dataManager.create(CalculatedMetrics.class);
+            calculatedMetrics.setRentalAnalysis(analysis);
+            analysis.setCalculatedMetrics(calculatedMetrics);
+            
+            // Save the analysis (cascade will save all child entities)
             RentalAnalysis savedAnalysis = dataManager.save(analysis);
+            
+            // Reload the entity to ensure we have the latest version with all IDs and versions set
+            RentalAnalysis reloadedAnalysis = dataManager.load(RentalAnalysis.class)
+                    .id(savedAnalysis.getId())
+                    .fetchPlan(builder -> builder.addFetchPlan(io.jmix.core.FetchPlan.BASE)
+                            .add("user", io.jmix.core.FetchPlan.BASE)
+                            .add("purchaseDetails", io.jmix.core.FetchPlan.BASE)
+                            .add("financingDetails", io.jmix.core.FetchPlan.BASE)
+                            .add("incomeProjection", io.jmix.core.FetchPlan.BASE)
+                            .add("expenseProjection", io.jmix.core.FetchPlan.BASE)
+                            .add("calculatedMetrics", io.jmix.core.FetchPlan.BASE))
+                    .one();
             
             // Navigate to the detail view
             notifications.create(messageBundle.getMessage("message.analysisCreated"))
                     .withType(Notifications.Type.SUCCESS)
                     .show();
             
-            // Navigate to detail view
-            viewNavigators.view(com.non.rental.view.rentalanalysis.RentalAnalysisDetailView.class)
-                    .withRouteParameters(savedAnalysis.getId())
-                    .withAfterNavigationHandler(afterNavigationEvent -> {
-                        com.non.rental.view.rentalanalysis.RentalAnalysisDetailView view = 
-                            afterNavigationEvent.getView();
-                        view.setPropertySearchResult(currentSearchResult);
-                    })
-                    .navigate();
+            // Navigate to detail view using route
+            getUI().ifPresent(ui -> ui.navigate("rental-analysis/" + reloadedAnalysis.getId()));
             
         } catch (Exception e) {
             log.error("Error creating analysis from search result", e);

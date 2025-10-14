@@ -148,19 +148,296 @@
                 <vbox id="amortizationPreview" classNames="amortization-preview"/>
             </vbox>
             
-            <!-- Income Content (Placeholder) -->
+            <!-- Income Content -->
             <vbox id="incomeContent" classNames="tab-content" padding="true" spacing="true" visible="false">
-                <span text="msg://placeholder.income"/>
+                <!-- Monthly Rent Section -->
+                <formLayout id="monthlyRentSection" classNames="form-section">
+                    <h4 text="msg://section.monthlyRent" colspan="2"/>
+                    <textField id="monthlyRentField"
+                               dataContainer="rentalAnalysisDc"
+                               property="incomeProjection.monthlyRent"
+                               label="msg://field.monthlyRent"
+                               helperText="msg://helper.monthlyRent"
+                               required="true"/>
+                    <div id="rentComparisonDiv" colspan="2"/>
+                </formLayout>
+                
+                <!-- Other Income Section -->
+                <formLayout id="otherIncomeSection" classNames="form-section">
+                    <h4 text="msg://section.otherIncome" colspan="2"/>
+                    <textField id="otherMonthlyIncomeField"
+                               dataContainer="rentalAnalysisDc"
+                               property="incomeProjection.otherMonthlyIncome"
+                               label="msg://field.otherMonthlyIncome"
+                               helperText="msg://helper.otherIncome"/>
+                    <button id="expandOtherIncomeButton" 
+                            text="msg://button.expandOtherIncome"
+                            colspan="2"/>
+                    <vbox id="otherIncomeBreakdownDiv" visible="false" colspan="2"/>
+                </formLayout>
+                
+                <!-- Vacancy Rate Section -->
+                <formLayout id="vacancyRateSection" classNames="form-section">
+                    <h4 text="msg://section.vacancyRate" colspan="2"/>
+                    <textField id="vacancyRateField"
+                               dataContainer="rentalAnalysisDc"
+                               property="incomeProjection.vacancyRate"
+                               label="msg://field.vacancyRate"
+                               helperText="msg://helper.vacancyRate"
+                               required="true"/>
+                    <div id="vacancySliderDiv" colspan="2"/>
+                    <div id="vacancyWarningsDiv" colspan="2"/>
+                </formLayout>
+                
+                <!-- Effective Income Display -->
+                <div id="effectiveIncomeSummary" classNames="summary-box">
+                    <h4 text="msg://section.effectiveIncome"/>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.grossMonthlyIncome" classNames="summary-label"/>
+                        <span id="grossMonthlyIncomeSpan" classNames="summary-value"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.monthlyVacancyLoss" classNames="summary-label"/>
+                        <span id="monthlyVacancyLossSpan" classNames="summary-value"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.effectiveMonthlyIncome" classNames="summary-label-total"/>
+                        <span id="effectiveMonthlyIncomeSpan" classNames="summary-value-total"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.annualEffectiveIncome" classNames="summary-label"/>
+                        <span id="annualEffectiveIncomeSpan" classNames="summary-value"/>
+                    </hbox>
+                </div>
             </vbox>
             
-            <!-- Expenses Content (Placeholder) -->
+            <!-- Expenses Content -->
             <vbox id="expensesContent" classNames="tab-content" padding="true" spacing="true" visible="false">
-                <span text="msg://placeholder.expenses"/>
+                <!-- Fixed Expenses -->
+                <h3 text="msg://section.fixedExpenses"/>
+                
+                <!-- Property Tax Section -->
+                <formLayout id="propertyTaxSection" classNames="form-section">
+                    <h4 text="msg://section.propertyTax" colspan="2"/>
+                    <textField id="annualPropertyTaxField"
+                               dataContainer="rentalAnalysisDc"
+                               property="expenseProjection.annualPropertyTax"
+                               label="msg://field.annualPropertyTax"
+                               helperText="msg://helper.propertyTax"/>
+                    <span id="monthlyPropertyTaxSpan" colspan="2"/>
+                </formLayout>
+                
+                <!-- Insurance Section -->
+                <formLayout id="insuranceSection" classNames="form-section">
+                    <h4 text="msg://section.insurance" colspan="2"/>
+                    <textField id="annualInsuranceField"
+                               dataContainer="rentalAnalysisDc"
+                               property="expenseProjection.annualInsurance"
+                               label="msg://field.annualInsurance"
+                               helperText="msg://helper.insurance"/>
+                    <button id="estimateInsuranceButton" 
+                            text="msg://button.estimateInsurance"
+                            colspan="2"/>
+                    <span id="monthlyInsuranceSpan" colspan="2"/>
+                </formLayout>
+                
+                <!-- HOA Fees Section -->
+                <formLayout id="hoaFeesSection" classNames="form-section">
+                    <h4 text="msg://section.hoaFees" colspan="2"/>
+                    <textField id="monthlyHOAFeesField"
+                               dataContainer="rentalAnalysisDc"
+                               property="expenseProjection.monthlyHOAFees"
+                               label="msg://field.monthlyHOAFees"
+                               helperText="msg://helper.hoaFees"/>
+                </formLayout>
+                
+                <!-- Variable Expenses -->
+                <h3 text="msg://section.variableExpenses"/>
+                
+                <!-- Property Management Section -->
+                <formLayout id="propertyManagementSection" classNames="form-section">
+                    <h4 text="msg://section.propertyManagement" colspan="2"/>
+                    <checkbox id="usePropertyManagerCheckbox"
+                              label="msg://field.usePropertyManager"
+                              colspan="2"/>
+                    <vbox id="propertyManagementFieldsDiv" visible="false" colspan="2">
+                        <textField id="propertyManagementPercentField"
+                                   dataContainer="rentalAnalysisDc"
+                                   property="expenseProjection.propertyManagementPercent"
+                                   label="msg://field.propertyManagementPercent"
+                                   helperText="msg://helper.propertyManagement"/>
+                        <span id="propertyManagementAmountSpan"/>
+                    </vbox>
+                </formLayout>
+                
+                <!-- Maintenance Section -->
+                <formLayout id="maintenanceSection" classNames="form-section">
+                    <h4 text="msg://section.maintenance" colspan="2"/>
+                    <textField id="maintenancePercentField"
+                               dataContainer="rentalAnalysisDc"
+                               property="expenseProjection.maintenancePercent"
+                               label="msg://field.maintenancePercent"
+                               helperText="msg://helper.maintenance"/>
+                    <span id="maintenanceAmountSpan" colspan="2"/>
+                </formLayout>
+                
+                <!-- CapEx Section -->
+                <formLayout id="capExSection" classNames="form-section">
+                    <h4 text="msg://section.capEx" colspan="2"/>
+                    <textField id="capExPercentField"
+                               dataContainer="rentalAnalysisDc"
+                               property="expenseProjection.capExPercent"
+                               label="msg://field.capExPercent"
+                               helperText="msg://helper.capEx"/>
+                    <span id="capExAmountSpan" colspan="2"/>
+                </formLayout>
+                
+                <!-- Utilities Section -->
+                <formLayout id="utilitiesSection" classNames="form-section">
+                    <h4 text="msg://section.utilities" colspan="2"/>
+                    <checkbox id="landlordPaysUtilitiesCheckbox"
+                              label="msg://field.landlordPaysUtilities"
+                              colspan="2"/>
+                    <vbox id="utilitiesBreakdownDiv" visible="false" colspan="2"/>
+                </formLayout>
+                
+                <!-- Other Expenses Section -->
+                <formLayout id="otherExpensesSection" classNames="form-section">
+                    <textField id="otherMonthlyExpensesField"
+                               dataContainer="rentalAnalysisDc"
+                               property="expenseProjection.otherMonthlyExpenses"
+                               label="msg://field.otherMonthlyExpenses"
+                               helperText="msg://helper.otherExpenses"/>
+                </formLayout>
+                
+                <!-- Expense Summary -->
+                <div id="expenseSummaryBox" classNames="summary-box">
+                    <h4 text="msg://section.expenseSummary"/>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.totalMonthlyExpenses" classNames="summary-label-total"/>
+                        <span id="totalMonthlyExpensesSpan" classNames="summary-value-total"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.totalAnnualExpenses" classNames="summary-label"/>
+                        <span id="totalAnnualExpensesSpan" classNames="summary-value"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN">
+                        <span text="msg://field.expenseRatio" classNames="summary-label"/>
+                        <span id="expenseRatioSpan" classNames="summary-value"/>
+                    </hbox>
+                    <div id="expenseWarningsDiv"/>
+                </div>
+                
+                <!-- Expense Breakdown Chart -->
+                <div id="expenseChartDiv" classNames="chart-container"/>
             </vbox>
             
-            <!-- Results Content (Placeholder) -->
+            <!-- Results Content -->
             <vbox id="resultsContent" classNames="tab-content" padding="true" spacing="true" visible="false">
-                <span text="msg://placeholder.results"/>
+                <!-- Action Buttons at Top -->
+                <hbox width="100%" justifyContent="END" classNames="results-actions">
+                    <button id="exportResultsButton" text="msg://button.exportResults" icon="DOWNLOAD"/>
+                    <button id="shareResultsButton" text="msg://button.shareResults" icon="SHARE"/>
+                </hbox>
+                
+                <!-- Key Metrics Section -->
+                <div classNames="summary-box results-key-metrics">
+                    <hbox width="100%" justifyContent="BETWEEN" alignItems="CENTER">
+                        <h3 text="msg://section.keyMetrics"/>
+                        <span text="ⓘ" classNames="help-icon" title="msg://help.keyMetrics"/>
+                    </hbox>
+                    
+                    <!-- Cash Flow -->
+                    <hbox width="100%" justifyContent="BETWEEN" classNames="metric-row">
+                        <hbox alignItems="CENTER">
+                            <span text="msg://field.monthlyCashFlow" classNames="metric-label"/>
+                            <span text="ⓘ" classNames="help-icon-small" title="msg://help.monthlyCashFlow"/>
+                        </hbox>
+                        <span id="monthlyCashFlowSpan" classNames="metric-value metric-cash-flow"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN" classNames="metric-row">
+                        <hbox alignItems="CENTER">
+                            <span text="msg://field.annualCashFlow" classNames="metric-label"/>
+                            <span text="ⓘ" classNames="help-icon-small" title="msg://help.annualCashFlow"/>
+                        </hbox>
+                        <span id="annualCashFlowSpan" classNames="metric-value"/>
+                    </hbox>
+                    
+                    <!-- Returns -->
+                    <hbox width="100%" justifyContent="BETWEEN" classNames="metric-row">
+                        <hbox alignItems="CENTER">
+                            <span text="msg://field.cashOnCashReturn" classNames="metric-label"/>
+                            <span text="ⓘ" classNames="help-icon-small" title="msg://help.cashOnCashReturn"/>
+                        </hbox>
+                        <span id="cashOnCashReturnSpan" classNames="metric-value metric-coc"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN" classNames="metric-row">
+                        <hbox alignItems="CENTER">
+                            <span text="msg://field.capRate" classNames="metric-label"/>
+                            <span text="ⓘ" classNames="help-icon-small" title="msg://help.capRate"/>
+                        </hbox>
+                        <span id="capRateSpan" classNames="metric-value metric-cap-rate"/>
+                    </hbox>
+                    
+                    <!-- Risk Metrics -->
+                    <hbox width="100%" justifyContent="BETWEEN" classNames="metric-row">
+                        <hbox alignItems="CENTER">
+                            <span text="msg://field.dscr" classNames="metric-label"/>
+                            <span text="ⓘ" classNames="help-icon-small" title="msg://help.dscr"/>
+                        </hbox>
+                        <span id="dscrSpan" classNames="metric-value metric-dscr"/>
+                    </hbox>
+                </div>
+                
+                <!-- Investment Quality Summary -->
+                <div id="investmentSummaryDiv" classNames="investment-summary"/>
+                
+                <!-- Detailed Metrics Section -->
+                <div classNames="summary-box results-detailed-metrics">
+                    <hbox width="100%" justifyContent="BETWEEN" alignItems="CENTER">
+                        <h3 text="msg://section.detailedMetrics"/>
+                        <span text="ⓘ" classNames="help-icon" title="msg://help.detailedMetrics"/>
+                    </hbox>
+                    
+                    <hbox width="100%" justifyContent="BETWEEN" classNames="metric-row">
+                        <hbox alignItems="CENTER">
+                            <span text="msg://field.noi" classNames="metric-label"/>
+                            <span text="ⓘ" classNames="help-icon-small" title="msg://help.noi"/>
+                        </hbox>
+                        <span id="noiSpan" classNames="metric-value"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN" classNames="metric-row">
+                        <hbox alignItems="CENTER">
+                            <span text="msg://field.grossYield" classNames="metric-label"/>
+                            <span text="ⓘ" classNames="help-icon-small" title="msg://help.grossYield"/>
+                        </hbox>
+                        <span id="grossYieldSpan" classNames="metric-value"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN" classNames="metric-row">
+                        <hbox alignItems="CENTER">
+                            <span text="msg://field.netYield" classNames="metric-label"/>
+                            <span text="ⓘ" classNames="help-icon-small" title="msg://help.netYield"/>
+                        </hbox>
+                        <span id="netYieldSpan" classNames="metric-value"/>
+                    </hbox>
+                    <hbox width="100%" justifyContent="BETWEEN" classNames="metric-row">
+                        <hbox alignItems="CENTER">
+                            <span text="msg://field.breakEvenRatio" classNames="metric-label"/>
+                            <span text="ⓘ" classNames="help-icon-small" title="msg://help.breakEvenRatio"/>
+                        </hbox>
+                        <span id="breakEvenRatioSpan" classNames="metric-value"/>
+                    </hbox>
+                </div>
+                
+                <!-- Premium Features Teaser (for free tier) -->
+                <div id="premiumFeaturesDiv" classNames="premium-teaser" visible="false">
+                    <h4 text="msg://section.premiumFeatures"/>
+                    <span text="msg://message.upgradeToPremium"/>
+                    <button id="upgradeButton" text="msg://button.upgradePremium" themeNames="primary"/>
+                </div>
+                
+                <!-- Warnings Section -->
+                <div id="resultsWarningsDiv" classNames="warnings-container"/>
             </vbox>
             
             <!-- Action buttons -->
