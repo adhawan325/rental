@@ -71,7 +71,7 @@ public class SubscriptionView extends StandardView {
     @Subscribe
     public void onInit(InitEvent event) {
         log.debug("Initializing SubscriptionView");
-        setupBillingHistoryGrid();
+        configureBillingHistoryGrid();
     }
 
     @Subscribe
@@ -380,35 +380,54 @@ public class SubscriptionView extends StandardView {
     }
 
     /**
-     * Setup billing history grid.
+     * Configure billing history grid with custom renderers and columns.
      */
-    private void setupBillingHistoryGrid() {
-        billingHistoryGrid.addColumn("billingDate")
+    private void configureBillingHistoryGrid() {
+        // Remove all existing columns defined in XML
+        billingHistoryGrid.removeAllColumns();
+        
+        // Add date column
+        billingHistoryGrid.addColumn(history -> 
+                history.getBillingDate() != null 
+                    ? history.getBillingDate().format(DATE_FORMATTER) 
+                    : "")
                 .setHeader(messageBundle.getMessage("field.date"))
-                .setAutoWidth(true);
+                .setAutoWidth(true)
+                .setSortable(true);
         
-        billingHistoryGrid.addColumn("description")
+        // Add description column
+        billingHistoryGrid.addColumn(BillingHistory::getDescription)
                 .setHeader(messageBundle.getMessage("field.description"))
-                .setAutoWidth(true);
+                .setAutoWidth(true)
+                .setFlexGrow(1);
         
-        billingHistoryGrid.addColumn(history -> CURRENCY_FORMAT.format(history.getAmount()))
+        // Add formatted amount column
+        billingHistoryGrid.addColumn(history -> 
+                history.getAmount() != null 
+                    ? CURRENCY_FORMAT.format(history.getAmount()) 
+                    : "$0.00")
                 .setHeader(messageBundle.getMessage("field.amount"))
-                .setAutoWidth(true);
+                .setAutoWidth(true)
+                .setSortable(true);
         
-        billingHistoryGrid.addColumn("status")
+        // Add status column
+        billingHistoryGrid.addColumn(BillingHistory::getStatus)
                 .setHeader(messageBundle.getMessage("field.status"))
-                .setAutoWidth(true);
+                .setAutoWidth(true)
+                .setSortable(true);
 
         // Add download invoice button column
         billingHistoryGrid.addComponentColumn(history -> {
-            if (history.getStripeInvoiceUrl() != null) {
+            if (history.getStripeInvoiceUrl() != null && !history.getStripeInvoiceUrl().isEmpty()) {
                 Button downloadButton = new Button(messageBundle.getMessage("button.download"));
                 downloadButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
                 downloadButton.addClickListener(e -> downloadInvoice(history));
                 return downloadButton;
             }
-            return new Span(messageBundle.getMessage("label.placeholder"));
-        }).setHeader(messageBundle.getMessage("field.invoice")).setAutoWidth(true);
+            return new Span("-");
+        }).setHeader(messageBundle.getMessage("field.invoice"))
+          .setAutoWidth(true)
+          .setFlexGrow(0);
     }
 
     /**

@@ -66,6 +66,12 @@ public class UserSubscription {
     @Column(name = "PAYMENT_METHOD_BRAND")
     private String paymentMethodBrand;
 
+    @Column(name = "STRIPE_PRICE_ID")
+    private String stripePriceId;
+
+    @Column(name = "STRIPE_CHECKOUT_SESSION_ID")
+    private String stripeCheckoutSessionId;
+
     @Column(name = "ACTIVE")
     private Boolean active = true;
 
@@ -180,6 +186,22 @@ public class UserSubscription {
 
     public void setPaymentMethodBrand(String paymentMethodBrand) {
         this.paymentMethodBrand = paymentMethodBrand;
+    }
+
+    public String getStripePriceId() {
+        return stripePriceId;
+    }
+
+    public void setStripePriceId(String stripePriceId) {
+        this.stripePriceId = stripePriceId;
+    }
+
+    public String getStripeCheckoutSessionId() {
+        return stripeCheckoutSessionId;
+    }
+
+    public void setStripeCheckoutSessionId(String stripeCheckoutSessionId) {
+        this.stripeCheckoutSessionId = stripeCheckoutSessionId;
     }
 
     public Boolean getActive() {

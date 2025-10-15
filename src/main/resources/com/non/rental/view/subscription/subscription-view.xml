@@ -51,12 +51,6 @@
                          dataContainer="billingHistoryDc"
                          width="100%"
                          minHeight="300px">
-                    <columns>
-                        <column property="billingDate"/>
-                        <column property="description"/>
-                        <column property="amount"/>
-                        <column property="status"/>
-                    </columns>
                 </dataGrid>
             </vbox>
             
