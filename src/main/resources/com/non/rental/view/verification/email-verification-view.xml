@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://emailVerificationView.title">
+    <layout>
+        <vbox id="mainLayout"
+              alignItems="CENTER"
+              justifyContent="CENTER"
+              padding="true"
+              spacing="true"
+              width="100%"
+              height="100%"
+              style="background-color: var(--lumo-contrast-5pct);">
+
+            <!-- Verification Card -->
+            <vbox id="contentLayout"
+                  alignItems="CENTER"
+                  padding="true"
+                  spacing="true"
+                  width="500px"
+                  style="background-color: var(--lumo-base-color); border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+
+                <!-- Status Icon -->
+                <icon id="statusIcon"
+                      icon="HOURGLASS"
+                      size="64px"
+                      style="color: var(--lumo-contrast-60pct); margin: 20px 0;"/>
+
+                <!-- Status Title -->
+                <h2 id="statusTitle"
+                    text="msg://emailVerificationView.verifying"
+                    style="margin: 0;"/>
+
+                <!-- Status Message -->
+                <html id="statusMessage"
+                      content="&lt;p style='color: var(--lumo-secondary-text-color); margin: 16px 0;'&gt;Please wait while we verify your email address...&lt;/p&gt;"/>
+
+                <!-- Action Button -->
+                <button id="actionButton"
+                        text="msg://emailVerificationView.continueButton"
+                        themeNames="primary large"
+                        visible="false"
+                        style="margin-top: 16px;"/>
+            </vbox>
+        </vbox>
+    </layout>
+</view>

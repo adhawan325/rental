@@ -54,6 +54,19 @@ public class User implements JmixUserDetails, HasTimeZone {
 
     @Column(name = "TIME_ZONE_ID")
     private String timeZoneId;
+    
+    // User Registration & Verification Fields
+    @Column(name = "EMAIL_VERIFIED")
+    private Boolean emailVerified = false;
+    
+    @Column(name = "ACCOUNT_STATUS", length = 20)
+    private String accountStatus = "PENDING"; // PENDING, ACTIVE, LOCKED, DISABLED
+    
+    @Column(name = "REGISTRATION_DATE")
+    private java.time.LocalDateTime registrationDate;
+    
+    @Column(name = "EMAIL_VERIFIED_DATE")
+    private java.time.LocalDateTime emailVerifiedDate;
 
     @Transient
     private Collection<? extends GrantedAuthority> authorities;
@@ -172,5 +185,37 @@ public class User implements JmixUserDetails, HasTimeZone {
 
     public void setTimeZoneId(final String timeZoneId) {
         this.timeZoneId = timeZoneId;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public String getAccountStatus() {
+        return accountStatus;
+    }
+
+    public void setAccountStatus(String accountStatus) {
+        this.accountStatus = accountStatus;
+    }
+
+    public java.time.LocalDateTime getRegistrationDate() {
+        return registrationDate;
+    }
+
+    public void setRegistrationDate(java.time.LocalDateTime registrationDate) {
+        this.registrationDate = registrationDate;
+    }
+
+    public java.time.LocalDateTime getEmailVerifiedDate() {
+        return emailVerifiedDate;
+    }
+
+    public void setEmailVerifiedDate(java.time.LocalDateTime emailVerifiedDate) {
+        this.emailVerifiedDate = emailVerifiedDate;
     }
 }
