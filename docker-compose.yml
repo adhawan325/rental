@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: rental-postgres
+    environment:
+      POSTGRES_DB: rental
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-rental_dev_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rental-network
+    restart: unless-stopped
+
+  # Jmix Rental Application
+  rental:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rental-app
+    environment:
+      # Spring Boot Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      
+      # Jmix Datasource Configuration (Jmix standard naming)
+      MAIN_DATASOURCE_URL: jdbc:postgresql://postgres:5432/rental
+      MAIN_DATASOURCE_USERNAME: postgres
+      MAIN_DATASOURCE_PASSWORD: ${DB_PASSWORD:-rental_dev_password}
+      
+      # RentCast API Configuration
+      RENTCAST_API_KEY: ${RENTCAST_API_KEY:-34fb2dfe78fb4d67a8a3fd6446e9fd73}
+      RENTCAST_API_BASE_URL: ${RENTCAST_API_BASE_URL:-https://api.rentcast.io/v1}
+      RENTCAST_API_TIMEOUT: ${RENTCAST_API_TIMEOUT:-30000}
+      RENTCAST_API_MAX_RETRIES: ${RENTCAST_API_MAX_RETRIES:-3}
+      
+      # Jmix Cache Configuration
+      RENTCAST_CACHE_TTL_DAYS: ${RENTCAST_CACHE_TTL_DAYS:-7}
+      RENTCAST_CACHE_ENABLED: ${RENTCAST_CACHE_ENABLED:-true}
+      
+      # Jmix File Storage
+      JMIX_LOCALFS_STORAGE_DIR: /opt/rental/storage
+      
+      # Server Configuration
+      SERVER_PORT: 8080
+      
+      # Vaadin Configuration
+      VAADIN_LAUNCH_BROWSER: "false"
+      
+      # JVM Options
+      JAVA_OPTS: "-Xmx1g -Xms512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+    ports:
+      - "8080:8080"
+    volumes:
+      - rental_storage:/opt/rental/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    networks:
+      - rental-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  rental_storage:
+    driver: local
+
+networks:
+  rental-network:
+    driver: bridge
