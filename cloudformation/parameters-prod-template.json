@@ -1,0 +1,66 @@
+[
+  {
+    "ParameterKey": "DomainName",
+    "ParameterValue": "app.yldz.io"
+  },
+  {
+    "ParameterKey": "CertificateArn",
+    "ParameterValue": "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"
+  },
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "t3.large"
+  },
+  {
+    "ParameterKey": "MinSize",
+    "ParameterValue": "2"
+  },
+  {
+    "ParameterKey": "MaxSize",
+    "ParameterValue": "6"
+  },
+  {
+    "ParameterKey": "DesiredCapacity",
+    "ParameterValue": "2"
+  },
+  {
+    "ParameterKey": "KeyPairName",
+    "ParameterValue": "your-key-pair-name"
+  },
+  {
+    "ParameterKey": "AllowedSSHCIDR",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "RentCastAPIKey",
+    "ParameterValue": "your-rentcast-api-key"
+  },
+  {
+    "ParameterKey": "StripeAPIKey",
+    "ParameterValue": "your-stripe-api-key"
+  },
+  {
+    "ParameterKey": "DatabasePassword",
+    "ParameterValue": "your-secure-password"
+  },
+  {
+    "ParameterKey": "DBInstanceClass",
+    "ParameterValue": "db.t3.medium"
+  },
+  {
+    "ParameterKey": "DBAllocatedStorage",
+    "ParameterValue": "100"
+  },
+  {
+    "ParameterKey": "EnableMultiAZ",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "BackupRetentionDays",
+    "ParameterValue": "30"
+  },
+  {
+    "ParameterKey": "AlertEmail",
+    "ParameterValue": "alerts@yldz.io"
+  }
+]

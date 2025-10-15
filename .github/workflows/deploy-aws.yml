@@ -1,0 +1,358 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - staging
+          - production
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: rental
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Scan Docker image for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  deploy-dev:
+    name: Deploy to Development
+    needs: build-and-push
+    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
+    runs-on: ubuntu-latest
+    environment:
+      name: development
+      url: http://${{ steps.deploy.outputs.public-ip }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Deploy CloudFormation stack
+        id: deploy
+        run: |
+          # Create parameters file
+          cat > parameters-dev.json <<EOF
+          [
+            {"ParameterKey": "EnvironmentName", "ParameterValue": "dev"},
+            {"ParameterKey": "InstanceType", "ParameterValue": "t3.medium"},
+            {"ParameterKey": "UseSpotInstance", "ParameterValue": "true"},
+            {"ParameterKey": "SpotMaxPrice", "ParameterValue": "0.05"},
+            {"ParameterKey": "KeyPairName", "ParameterValue": "${{ secrets.EC2_KEY_PAIR_NAME }}"},
+            {"ParameterKey": "AllowedSSHCIDR", "ParameterValue": "0.0.0.0/0"},
+            {"ParameterKey": "AllowedHTTPCIDR", "ParameterValue": "0.0.0.0/0"},
+            {"ParameterKey": "RentCastAPIKey", "ParameterValue": "${{ secrets.RENTCAST_API_KEY }}"},
+            {"ParameterKey": "DatabasePassword", "ParameterValue": "${{ secrets.DEV_DB_PASSWORD }}"},
+            {"ParameterKey": "VolumeSize", "ParameterValue": "50"}
+          ]
+          EOF
+          
+          # Deploy stack
+          aws cloudformation deploy \
+            --template-file cloudformation/lower-env-stack.yaml \
+            --stack-name rental-dev \
+            --parameter-overrides file://parameters-dev.json \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+          
+          # Get public IP
+          PUBLIC_IP=$(aws cloudformation describe-stacks \
+            --stack-name rental-dev \
+            --query 'Stacks[0].Outputs[?OutputKey==`PublicIP`].OutputValue' \
+            --output text)
+          
+          echo "public-ip=$PUBLIC_IP" >> $GITHUB_OUTPUT
+      
+      - name: Restart application
+        run: |
+          INSTANCE_ID=$(aws cloudformation describe-stacks \
+            --stack-name rental-dev \
+            --query 'Stacks[0].Outputs[?OutputKey==`InstanceId`].OutputValue' \
+            --output text)
+          
+          aws ec2 reboot-instances --instance-ids $INSTANCE_ID
+          
+          echo "Instance $INSTANCE_ID restarted to pull latest image"
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.yldz.io
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Deploy CloudFormation stack
+        run: |
+          # Create parameters file
+          cat > parameters-staging.json <<EOF
+          [
+            {"ParameterKey": "EnvironmentName", "ParameterValue": "staging"},
+            {"ParameterKey": "InstanceType", "ParameterValue": "t3.medium"},
+            {"ParameterKey": "UseSpotInstance", "ParameterValue": "false"},
+            {"ParameterKey": "KeyPairName", "ParameterValue": "${{ secrets.EC2_KEY_PAIR_NAME }}"},
+            {"ParameterKey": "AllowedSSHCIDR", "ParameterValue": "10.0.0.0/16"},
+            {"ParameterKey": "AllowedHTTPCIDR", "ParameterValue": "0.0.0.0/0"},
+            {"ParameterKey": "DomainName", "ParameterValue": "staging.yldz.io"},
+            {"ParameterKey": "RentCastAPIKey", "ParameterValue": "${{ secrets.RENTCAST_API_KEY }}"},
+            {"ParameterKey": "StripeAPIKey", "ParameterValue": "${{ secrets.STRIPE_TEST_API_KEY }}"},
+            {"ParameterKey": "DatabasePassword", "ParameterValue": "${{ secrets.STAGING_DB_PASSWORD }}"},
+            {"ParameterKey": "VolumeSize", "ParameterValue": "50"}
+          ]
+          EOF
+          
+          # Deploy stack
+          aws cloudformation deploy \
+            --template-file cloudformation/lower-env-stack.yaml \
+            --stack-name rental-staging \
+            --parameter-overrides file://parameters-staging.json \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+      
+      - name: Restart application
+        run: |
+          INSTANCE_ID=$(aws cloudformation describe-stacks \
+            --stack-name rental-staging \
+            --query 'Stacks[0].Outputs[?OutputKey==`InstanceId`].OutputValue' \
+            --output text)
+          
+          aws ec2 reboot-instances --instance-ids $INSTANCE_ID
+
+  deploy-production:
+    name: Deploy to Production
+    needs: build-and-push
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://app.yldz.io
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Deploy CloudFormation stack
+        run: |
+          # Create parameters file
+          cat > parameters-prod.json <<EOF
+          [
+            {"ParameterKey": "DomainName", "ParameterValue": "app.yldz.io"},
+            {"ParameterKey": "CertificateArn", "ParameterValue": "${{ secrets.ACM_CERTIFICATE_ARN }}"},
+            {"ParameterKey": "InstanceType", "ParameterValue": "t3.large"},
+            {"ParameterKey": "MinSize", "ParameterValue": "2"},
+            {"ParameterKey": "MaxSize", "ParameterValue": "6"},
+            {"ParameterKey": "DesiredCapacity", "ParameterValue": "2"},
+            {"ParameterKey": "KeyPairName", "ParameterValue": "${{ secrets.EC2_KEY_PAIR_NAME }}"},
+            {"ParameterKey": "AllowedSSHCIDR", "ParameterValue": "10.0.0.0/16"},
+            {"ParameterKey": "RentCastAPIKey", "ParameterValue": "${{ secrets.RENTCAST_API_KEY }}"},
+            {"ParameterKey": "StripeAPIKey", "ParameterValue": "${{ secrets.STRIPE_LIVE_API_KEY }}"},
+            {"ParameterKey": "DatabasePassword", "ParameterValue": "${{ secrets.PROD_DB_PASSWORD }}"},
+            {"ParameterKey": "DBInstanceClass", "ParameterValue": "db.t3.medium"},
+            {"ParameterKey": "DBAllocatedStorage", "ParameterValue": "100"},
+            {"ParameterKey": "EnableMultiAZ", "ParameterValue": "true"},
+            {"ParameterKey": "BackupRetentionDays", "ParameterValue": "30"},
+            {"ParameterKey": "AlertEmail", "ParameterValue": "${{ secrets.ALERT_EMAIL }}"}
+          ]
+          EOF
+          
+          # Deploy stack
+          aws cloudformation deploy \
+            --template-file cloudformation/production-stack.yaml \
+            --stack-name rental-production \
+            --parameter-overrides file://parameters-prod.json \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+      
+      - name: Trigger rolling update
+        run: |
+          ASG_NAME=$(aws cloudformation describe-stacks \
+            --stack-name rental-production \
+            --query 'Stacks[0].Outputs[?OutputKey==`AutoScalingGroupName`].OutputValue' \
+            --output text)
+          
+          # Start instance refresh for zero-downtime deployment
+          aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name $ASG_NAME \
+            --preferences '{"MinHealthyPercentage": 50, "InstanceWarmup": 300}'
+          
+          echo "Rolling update started for Auto Scaling Group: $ASG_NAME"
+      
+      - name: Wait for deployment to complete
+        run: |
+          ASG_NAME=$(aws cloudformation describe-stacks \
+            --stack-name rental-production \
+            --query 'Stacks[0].Outputs[?OutputKey==`AutoScalingGroupName`].OutputValue' \
+            --output text)
+          
+          # Wait for instance refresh to complete (max 30 minutes)
+          for i in {1..60}; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name $ASG_NAME \
+              --query 'InstanceRefreshes[0].Status' \
+              --output text)
+            
+            echo "Instance refresh status: $STATUS"
+            
+            if [ "$STATUS" == "Successful" ]; then
+              echo "Deployment completed successfully!"
+              exit 0
+            elif [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
+              echo "Deployment failed with status: $STATUS"
+              exit 1
+            fi
+            
+            sleep 30
+          done
+          
+          echo "Deployment timed out after 30 minutes"
+          exit 1
+      
+      - name: Run smoke tests
+        run: |
+          # Wait for application to be ready
+          sleep 60
+          
+          # Test health endpoint
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://app.yldz.io/actuator/health)
+          
+          if [ "$RESPONSE" == "200" ]; then
+            echo "Health check passed!"
+          else
+            echo "Health check failed with status: $RESPONSE"
+            exit 1
+          fi
+      
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "Production deployment completed successfully!"
+          # Add Slack/email notification here if needed
+      
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          echo "Production deployment failed!"
+          # Add Slack/email notification here if needed
+
+  cleanup:
+    name: Cleanup old images
+    needs: [deploy-dev, deploy-staging, deploy-production]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Delete old ECR images
+        run: |
+          # Keep only the last 10 images
+          aws ecr describe-images \
+            --repository-name ${{ env.ECR_REPOSITORY }} \
+            --query 'sort_by(imageDetails,& imagePushedAt)[:-10].[imageDigest]' \
+            --output text | \
+          while read digest; do
+            if [ ! -z "$digest" ]; then
+              aws ecr batch-delete-image \
+                --repository-name ${{ env.ECR_REPOSITORY }} \
+                --image-ids imageDigest=$digest || true
+            fi
+          done

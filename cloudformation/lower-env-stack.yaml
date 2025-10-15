@@ -1,0 +1,799 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Jmix Rental Application - Lower Environment (Dev/Test/Staging) - Single EC2 with Embedded PostgreSQL'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - test
+      - staging
+    Description: Environment name (dev, test, or staging)
+  
+  InstanceType:
+    Type: String
+    Default: t3.medium
+    AllowedValues:
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3a.medium
+      - t3a.large
+    Description: EC2 instance type
+  
+  UseSpotInstance:
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: Use Spot instances for cost savings (recommended for dev/test)
+  
+  SpotMaxPrice:
+    Type: String
+    Default: '0.05'
+    Description: Maximum hourly price for Spot instances (USD)
+  
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 Key Pair for SSH access
+  
+  AllowedSSHCIDR:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: CIDR block allowed to SSH (restrict this in production)
+    AllowedPattern: '^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$'
+  
+  AllowedHTTPCIDR:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: CIDR block allowed to access the application
+    AllowedPattern: '^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$'
+  
+  DomainName:
+    Type: String
+    Default: ''
+    Description: Optional domain name (e.g., dev.yldz.io)
+  
+  RentCastAPIKey:
+    Type: String
+    NoEcho: true
+    Description: RentCast API Key
+  
+  StripeAPIKey:
+    Type: String
+    NoEcho: true
+    Default: ''
+    Description: Stripe API Key (optional for lower environments)
+  
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+    Default: 'ChangeMe123!'
+    Description: PostgreSQL database password
+    MinLength: 8
+  
+  VolumeSize:
+    Type: Number
+    Default: 50
+    MinValue: 20
+    MaxValue: 500
+    Description: EBS volume size in GB
+
+Conditions:
+  UseSpot: !Equals [!Ref UseSpotInstance, 'true']
+  UseOnDemand: !Not [!Equals [!Ref UseSpotInstance, 'true']]
+  HasDomain: !Not [!Equals [!Ref DomainName, '']]
+  HasStripeKey: !Not [!Equals [!Ref StripeAPIKey, '']]
+
+Resources:
+  # VPC Configuration
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-rental-vpc'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-rental-igw'
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-rental-public-subnet'
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-rental-public-rt'
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  # Security Group
+  ApplicationSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${EnvironmentName}-rental-sg'
+      GroupDescription: Security group for Rental application
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref AllowedSSHCIDR
+          Description: SSH access
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: !Ref AllowedHTTPCIDR
+          Description: Application HTTP access
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref AllowedHTTPCIDR
+          Description: Application HTTPS access
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-rental-sg'
+
+  # IAM Role for EC2
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${EnvironmentName}-rental-ec2-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: S3BackupAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub '${BackupBucket.Arn}'
+                  - !Sub '${BackupBucket.Arn}/*'
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub '${EnvironmentName}-rental-instance-profile'
+      Roles:
+        - !Ref EC2Role
+
+  # S3 Bucket for Backups
+  BackupBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${EnvironmentName}-rental-backups-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldBackups
+            Status: Enabled
+            ExpirationInDays: 30
+            NoncurrentVersionExpirationInDays: 7
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  # Launch Template for On-Demand Instance
+  OnDemandLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Condition: UseOnDemand
+    Properties:
+      LaunchTemplateName: !Sub '${EnvironmentName}-rental-launch-template'
+      LaunchTemplateData:
+        ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyPairName
+        IamInstanceProfile:
+          Arn: !GetAtt EC2InstanceProfile.Arn
+        SecurityGroupIds:
+          - !Ref ApplicationSecurityGroup
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeSize: !Ref VolumeSize
+              VolumeType: gp3
+              DeleteOnTermination: false
+              Encrypted: true
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -e
+            
+            # Update system
+            dnf update -y
+            
+            # Install required packages
+            dnf install -y docker postgresql15 postgresql15-server git nginx certbot python3-certbot-nginx
+            
+            # Start and enable Docker
+            systemctl start docker
+            systemctl enable docker
+            
+            # Add ec2-user to docker group
+            usermod -aG docker ec2-user
+            
+            # Initialize PostgreSQL
+            postgresql-setup --initdb
+            
+            # Configure PostgreSQL
+            cat > /var/lib/pgsql/data/pg_hba.conf <<EOF
+            local   all             all                                     peer
+            host    all             all             127.0.0.1/32            md5
+            host    all             all             ::1/128                 md5
+            EOF
+            
+            # Start PostgreSQL
+            systemctl start postgresql
+            systemctl enable postgresql
+            
+            # Create database and user
+            sudo -u postgres psql <<EOF
+            CREATE DATABASE rental;
+            CREATE USER rentalapp WITH ENCRYPTED PASSWORD '${DatabasePassword}';
+            GRANT ALL PRIVILEGES ON DATABASE rental TO rentalapp;
+            ALTER DATABASE rental OWNER TO rentalapp;
+            EOF
+            
+            # Create application directory
+            mkdir -p /opt/rental/storage
+            mkdir -p /opt/rental/logs
+            mkdir -p /opt/rental/backups
+            
+            # Create environment file
+            cat > /opt/rental/.env <<EOF
+            SPRING_PROFILES_ACTIVE=${EnvironmentName}
+            DATABASE_URL=jdbc:postgresql://localhost:5432/rental
+            DATABASE_USERNAME=rentalapp
+            DATABASE_PASSWORD=${DatabasePassword}
+            RENTCAST_API_KEY=${RentCastAPIKey}
+            ${!If [HasStripeKey, !Sub 'STRIPE_API_KEY=${StripeAPIKey}', '']}
+            ${!If [HasDomain, !Sub 'APP_BASE_URL=https://${DomainName}', 'APP_BASE_URL=http://localhost:8080']}
+            ${!If [HasDomain, !Sub 'STRIPE_SUCCESS_URL=https://${DomainName}/subscription/success', '']}
+            ${!If [HasDomain, !Sub 'STRIPE_CANCEL_URL=https://${DomainName}/subscription/cancel', '']}
+            STORAGE_DIR=/opt/rental/storage
+            PORT=8080
+            JAVA_OPTS=-Xmx1g -Xms512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+            EOF
+            
+            # Create systemd service for the application
+            cat > /etc/systemd/system/rental.service <<'EOFS'
+            [Unit]
+            Description=Rental Jmix Application
+            After=docker.service postgresql.service
+            Requires=docker.service postgresql.service
+            
+            [Service]
+            Type=simple
+            User=ec2-user
+            WorkingDirectory=/opt/rental
+            EnvironmentFile=/opt/rental/.env
+            ExecStartPre=/usr/bin/docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/rental:latest || /bin/true
+            ExecStart=/usr/bin/docker run --rm --name rental-app \
+              --network host \
+              --env-file /opt/rental/.env \
+              -v /opt/rental/storage:/opt/rental/storage \
+              -v /opt/rental/logs:/app/logs \
+              ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/rental:latest
+            ExecStop=/usr/bin/docker stop rental-app
+            Restart=always
+            RestartSec=10
+            
+            [Install]
+            WantedBy=multi-user.target
+            EOFS
+            
+            # Create backup script
+            cat > /opt/rental/backup.sh <<'EOFB'
+            #!/bin/bash
+            BACKUP_DIR=/opt/rental/backups
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            BACKUP_FILE="rental_backup_${!TIMESTAMP}.sql.gz"
+            
+            # Backup database
+            sudo -u postgres pg_dump rental | gzip > ${!BACKUP_DIR}/${!BACKUP_FILE}
+            
+            # Upload to S3
+            aws s3 cp ${!BACKUP_DIR}/${!BACKUP_FILE} s3://${BackupBucket}/database/
+            
+            # Clean up local backups older than 7 days
+            find ${!BACKUP_DIR} -name "*.sql.gz" -mtime +7 -delete
+            EOFB
+            
+            chmod +x /opt/rental/backup.sh
+            
+            # Setup daily backup cron job
+            echo "0 2 * * * /opt/rental/backup.sh" | crontab -
+            
+            # Configure Nginx as reverse proxy
+            cat > /etc/nginx/conf.d/rental.conf <<'EOFN'
+            server {
+                listen 80;
+                server_name ${!If [HasDomain, !Ref DomainName, '_']};
+                
+                client_max_body_size 50M;
+                
+                location / {
+                    proxy_pass http://localhost:8080;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
+                    
+                    # WebSocket support for Vaadin
+                    proxy_http_version 1.1;
+                    proxy_set_header Upgrade $http_upgrade;
+                    proxy_set_header Connection "upgrade";
+                    
+                    proxy_connect_timeout 300s;
+                    proxy_send_timeout 300s;
+                    proxy_read_timeout 300s;
+                }
+                
+                location /actuator/health {
+                    proxy_pass http://localhost:8080/actuator/health;
+                    access_log off;
+                }
+            }
+            EOFN
+            
+            # Start Nginx
+            systemctl start nginx
+            systemctl enable nginx
+            
+            # Install CloudWatch agent
+            wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+            rpm -U ./amazon-cloudwatch-agent.rpm
+            
+            # Configure CloudWatch agent
+            cat > /opt/aws/amazon-cloudwatch-agent/etc/config.json <<'EOFCW'
+            {
+              "metrics": {
+                "namespace": "RentalApp/${EnvironmentName}",
+                "metrics_collected": {
+                  "mem": {
+                    "measurement": [
+                      {"name": "mem_used_percent", "rename": "MemoryUtilization", "unit": "Percent"}
+                    ],
+                    "metrics_collection_interval": 60
+                  },
+                  "disk": {
+                    "measurement": [
+                      {"name": "used_percent", "rename": "DiskUtilization", "unit": "Percent"}
+                    ],
+                    "metrics_collection_interval": 60,
+                    "resources": ["*"]
+                  }
+                }
+              },
+              "logs": {
+                "logs_collected": {
+                  "files": {
+                    "collect_list": [
+                      {
+                        "file_path": "/opt/rental/logs/application.log",
+                        "log_group_name": "/aws/ec2/rental/${EnvironmentName}",
+                        "log_stream_name": "{instance_id}/application"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+            EOFCW
+            
+            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+              -a fetch-config \
+              -m ec2 \
+              -s \
+              -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json
+            
+            # Signal CloudFormation
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ApplicationInstance --region ${AWS::Region}
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub '${EnvironmentName}-rental-app'
+              - Key: Environment
+                Value: !Ref EnvironmentName
+
+  # EC2 Instance (On-Demand)
+  ApplicationInstance:
+    Type: AWS::EC2::Instance
+    Condition: UseOnDemand
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref OnDemandLaunchTemplate
+        Version: !GetAtt OnDemandLaunchTemplate.LatestVersionNumber
+      SubnetId: !Ref PublicSubnet
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-rental-app'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  # Launch Template for Spot Instance
+  SpotLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Condition: UseSpot
+    Properties:
+      LaunchTemplateName: !Sub '${EnvironmentName}-rental-spot-launch-template'
+      LaunchTemplateData:
+        ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyPairName
+        IamInstanceProfile:
+          Arn: !GetAtt EC2InstanceProfile.Arn
+        SecurityGroupIds:
+          - !Ref ApplicationSecurityGroup
+        InstanceMarketOptions:
+          MarketType: spot
+          SpotOptions:
+            MaxPrice: !Ref SpotMaxPrice
+            SpotInstanceType: persistent
+            InstanceInterruptionBehavior: stop
+        BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: !Ref VolumeSize
+            VolumeType: gp3
+            DeleteOnTermination: false
+            Encrypted: true
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -e
+            
+            # Update system
+            dnf update -y
+            
+            # Install required packages
+            dnf install -y docker postgresql15 postgresql15-server git nginx certbot python3-certbot-nginx
+            
+            # Start and enable Docker
+            systemctl start docker
+            systemctl enable docker
+            
+            # Add ec2-user to docker group
+            usermod -aG docker ec2-user
+            
+            # Initialize PostgreSQL
+            postgresql-setup --initdb
+            
+            # Configure PostgreSQL
+            cat > /var/lib/pgsql/data/pg_hba.conf <<EOF
+            local   all             all                                     peer
+            host    all             all             127.0.0.1/32            md5
+            host    all             all             ::1/128                 md5
+            EOF
+            
+            # Start PostgreSQL
+            systemctl start postgresql
+            systemctl enable postgresql
+            
+            # Create database and user
+            sudo -u postgres psql <<EOF
+            CREATE DATABASE rental;
+            CREATE USER rentalapp WITH ENCRYPTED PASSWORD '${DatabasePassword}';
+            GRANT ALL PRIVILEGES ON DATABASE rental TO rentalapp;
+            ALTER DATABASE rental OWNER TO rentalapp;
+            EOF
+            
+            # Create application directory
+            mkdir -p /opt/rental/storage
+            mkdir -p /opt/rental/logs
+            mkdir -p /opt/rental/backups
+            
+            # Create environment file
+            cat > /opt/rental/.env <<EOF
+            SPRING_PROFILES_ACTIVE=${EnvironmentName}
+            DATABASE_URL=jdbc:postgresql://localhost:5432/rental
+            DATABASE_USERNAME=rentalapp
+            DATABASE_PASSWORD=${DatabasePassword}
+            RENTCAST_API_KEY=${RentCastAPIKey}
+            ${!If [HasStripeKey, !Sub 'STRIPE_API_KEY=${StripeAPIKey}', '']}
+            ${!If [HasDomain, !Sub 'APP_BASE_URL=https://${DomainName}', 'APP_BASE_URL=http://localhost:8080']}
+            ${!If [HasDomain, !Sub 'STRIPE_SUCCESS_URL=https://${DomainName}/subscription/success', '']}
+            ${!If [HasDomain, !Sub 'STRIPE_CANCEL_URL=https://${DomainName}/subscription/cancel', '']}
+            STORAGE_DIR=/opt/rental/storage
+            PORT=8080
+            JAVA_OPTS=-Xmx1g -Xms512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+            EOF
+            
+            # Create systemd service for the application
+            cat > /etc/systemd/system/rental.service <<'EOFS'
+            [Unit]
+            Description=Rental Jmix Application
+            After=docker.service postgresql.service
+            Requires=docker.service postgresql.service
+            
+            [Service]
+            Type=simple
+            User=ec2-user
+            WorkingDirectory=/opt/rental
+            EnvironmentFile=/opt/rental/.env
+            ExecStartPre=/usr/bin/docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/rental:latest || /bin/true
+            ExecStart=/usr/bin/docker run --rm --name rental-app \
+              --network host \
+              --env-file /opt/rental/.env \
+              -v /opt/rental/storage:/opt/rental/storage \
+              -v /opt/rental/logs:/app/logs \
+              ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/rental:latest
+            ExecStop=/usr/bin/docker stop rental-app
+            Restart=always
+            RestartSec=10
+            
+            [Install]
+            WantedBy=multi-user.target
+            EOFS
+            
+            # Create backup script
+            cat > /opt/rental/backup.sh <<'EOFB'
+            #!/bin/bash
+            BACKUP_DIR=/opt/rental/backups
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            BACKUP_FILE="rental_backup_${!TIMESTAMP}.sql.gz"
+            
+            # Backup database
+            sudo -u postgres pg_dump rental | gzip > ${!BACKUP_DIR}/${!BACKUP_FILE}
+            
+            # Upload to S3
+            aws s3 cp ${!BACKUP_DIR}/${!BACKUP_FILE} s3://${BackupBucket}/database/
+            
+            # Clean up local backups older than 7 days
+            find ${!BACKUP_DIR} -name "*.sql.gz" -mtime +7 -delete
+            EOFB
+            
+            chmod +x /opt/rental/backup.sh
+            
+            # Setup daily backup cron job
+            echo "0 2 * * * /opt/rental/backup.sh" | crontab -
+            
+            # Configure Nginx as reverse proxy
+            cat > /etc/nginx/conf.d/rental.conf <<'EOFN'
+            server {
+                listen 80;
+                server_name ${!If [HasDomain, !Ref DomainName, '_']};
+                
+                client_max_body_size 50M;
+                
+                location / {
+                    proxy_pass http://localhost:8080;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
+                    
+                    # WebSocket support for Vaadin
+                    proxy_http_version 1.1;
+                    proxy_set_header Upgrade $http_upgrade;
+                    proxy_set_header Connection "upgrade";
+                    
+                    proxy_connect_timeout 300s;
+                    proxy_send_timeout 300s;
+                    proxy_read_timeout 300s;
+                }
+                
+                location /actuator/health {
+                    proxy_pass http://localhost:8080/actuator/health;
+                    access_log off;
+                }
+            }
+            EOFN
+            
+            # Start Nginx
+            systemctl start nginx
+            systemctl enable nginx
+            
+            # Install CloudWatch agent
+            wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+            rpm -U ./amazon-cloudwatch-agent.rpm
+            
+            # Configure CloudWatch agent
+            cat > /opt/aws/amazon-cloudwatch-agent/etc/config.json <<'EOFCW'
+            {
+              "metrics": {
+                "namespace": "RentalApp/${EnvironmentName}",
+                "metrics_collected": {
+                  "mem": {
+                    "measurement": [
+                      {"name": "mem_used_percent", "rename": "MemoryUtilization", "unit": "Percent"}
+                    ],
+                    "metrics_collection_interval": 60
+                  },
+                  "disk": {
+                    "measurement": [
+                      {"name": "used_percent", "rename": "DiskUtilization", "unit": "Percent"}
+                    ],
+                    "metrics_collection_interval": 60,
+                    "resources": ["*"]
+                  }
+                }
+              },
+              "logs": {
+                "logs_collected": {
+                  "files": {
+                    "collect_list": [
+                      {
+                        "file_path": "/opt/rental/logs/application.log",
+                        "log_group_name": "/aws/ec2/rental/${EnvironmentName}",
+                        "log_stream_name": "{instance_id}/application"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+            EOFCW
+            
+            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+              -a fetch-config \
+              -m ec2 \
+              -s \
+              -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json
+            
+            # Signal CloudFormation
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource SpotInstance --region ${AWS::Region}
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub '${EnvironmentName}-rental-app-spot'
+              - Key: Environment
+                Value: !Ref EnvironmentName
+
+  SpotInstance:
+    Type: AWS::EC2::Instance
+    Condition: UseSpot
+    DependsOn:
+      - ApplicationLogGroup
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      LaunchTemplate:
+        LaunchTemplateId: !Ref SpotLaunchTemplate
+        Version: !GetAtt SpotLaunchTemplate.LatestVersionNumber
+
+  # CloudWatch Log Group
+  ApplicationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/ec2/rental/${EnvironmentName}'
+      RetentionInDays: 30
+
+  # CloudWatch Alarms
+  HighCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${EnvironmentName}-rental-high-cpu'
+      AlarmDescription: Alert when CPU exceeds 80%
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: InstanceId
+          Value: !If [UseSpot, !Ref SpotInstance, !Ref ApplicationInstance]
+
+  HighMemoryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${EnvironmentName}-rental-high-memory'
+      AlarmDescription: Alert when memory exceeds 85%
+      MetricName: MemoryUtilization
+      Namespace: !Sub 'RentalApp/${EnvironmentName}'
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 85
+      ComparisonOperator: GreaterThanThreshold
+
+Outputs:
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !If [UseSpot, !Ref SpotInstance, !Ref ApplicationInstance]
+    Export:
+      Name: !Sub '${EnvironmentName}-rental-instance-id'
+  
+  PublicIP:
+    Description: Public IP address of the instance
+    Value: !If [UseSpot, !GetAtt SpotInstance.PublicIp, !GetAtt ApplicationInstance.PublicIp]
+    Export:
+      Name: !Sub '${EnvironmentName}-rental-public-ip'
+  
+  ApplicationURL:
+    Description: Application URL
+    Value: !If 
+      - HasDomain
+      - !Sub 'https://${DomainName}'
+      - !If 
+        - UseSpot
+        - !Sub 'http://${SpotInstance.PublicIp}'
+        - !Sub 'http://${ApplicationInstance.PublicIp}'
+  
+  BackupBucketName:
+    Description: S3 bucket for backups
+    Value: !Ref BackupBucket
+    Export:
+      Name: !Sub '${EnvironmentName}-rental-backup-bucket'
+  
+  SSHCommand:
+    Description: SSH command to connect to the instance
+    Value: !If 
+      - UseSpot
+      - !Sub 'ssh -i ${KeyPairName}.pem ec2-user@${SpotInstance.PublicIp}'
+      - !Sub 'ssh -i ${KeyPairName}.pem ec2-user@${ApplicationInstance.PublicIp}'
